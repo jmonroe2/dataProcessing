@@ -1,0 +1,59 @@
+# Data from hotJJ 10/19/18 probing results
+# chip 1, baseline 1/1, probe with 100k
+338 uV, 151 uV
+370 uV, 261 uV
+288 uV, 190 uV
+187 uV, 124 uV
+146 uV, 115 uV
+111 uV, 123 uV
+# chip 2, 50 C for 5 min, probe with 1M
+-1, 76 uV
+104 uV, 73 uV
+99 uV, 92 uV
+92 uV, 79 uV**
+157 uV, 89 uV
+107 uV, 103 uV  
+# chip 3, 50 C for 2 min, probe with 1M
+61 uV, 82 uV
+55 uV, 56 uV
+71 uV, 54 uV
+40 uV, 51 uV
+75 uV, 53 uV
+65 uV, 43 uV
+# chip 4, 50 C for 15 sec, probe with 1M
+139 uV, 135 uV
+88 uV, 71 uV
+76 uV, 80 uV
+110 uV, 70 uV
+109 uV, 94 uV
+82 uV,  71 uV
+# chip 5, baseline 2/2, probe with 100 k
+78 uV,  94 uV
+72 uV, 83 uV
+80 uV, 87 uV
+86 uV, 118 uV
+123 uV, 130 uV
+145 uV, 173 uV
+#
+############################3
+# single JJs
+20.5 uV, 26.8 uV, 24.5 uV
+19.9 uV, 22.8 uV, 13.4 uV
+-100, 12.6 uV, -100 
+#
+54 uV, 41 uV, 44 uV
+50 uV, 53 uV, 46 uV
+47 uV*, 41 uV, 65 uV
+#
+41 uV, 37 uV, 38 uV
+40 uV, 37 uV, 34 uV
+37 uV, 36 uV, 35 uV*
+#
+53 uV**, 50 uV**, 54 uV**
+47 uV**, 51 uV**, 54 uV**
+56 uV**, 55 uV**, 57 uV**
+#
+33 uV, 34 uV, 35 uV
+34 uV, 35 uV, 34 uV
+34 uV, 32 uV, 35 uV  
+#
