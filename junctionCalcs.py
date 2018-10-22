@@ -7,65 +7,98 @@ Created on Sun Oct 21 08:21:24 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 import re
 
-def voltage_to_resistance(v_obs_uv,bias_r=1E9):
+def voltage_to_resistance(v_obs_uv,bias_r=1E6):
     v_mon = 0.939E-3 # volts
     v = np.array(v_obs_uv)*1E-6/v_mon
     
     return bias_r/(1/v-1) ## from solving for Rs in voltage divider
 ##END resistance_to_voltage
+    
+
+def parse_input(input_list, regex_template, num_blocks,tmp=None):
+    measure_list = [ [] for i in range(num_blocks) ]
+    chip_index = 0
+    for target_str in input_list:
+        if target_str[0] == "#": 
+            chip_index += 1
+            continue
+        found = re.findall(regex_template, target_str) 
+        if len(found):
+            for add in found[0]:
+                measure_list[chip_index].append(float(add))
+        else:
+            ##@@ HACK INCOMING
+            for i in range(tmp):
+                measure_list[chip_index].append(-1)            
+    ##END loop through paramp measurements
+    
+    ## convert to np array
+    return  np.array([ np.array(l) for l in measure_list])
+##END parse_input
+    
+    
+def make_plot(data, num_chips, ic_fun=None):
+    resistance = voltage_to_resistance(data)
+    crit_curr = 270.0/resistance ## magic number from paramp 09/12/18 lookup table
+    if ic_fun is not None:
+        ic_fun(crit_curr)
+    target = crit_curr ## what to plot
+    
+    ## plots
+    label_list = ['Baseline 1/2', '50 C, 15 sec', '50 C, 2 min', \
+                  '50 C, 5 min',  'Baseline 2/2']
+    num_device_perChip = len(data[0])
+    avg = np.nanmean(target, axis=1)
+    var = np.nanvar(target, axis=1)
+    std = np.sqrt(var/num_device_perChip)
+    for i,devices in enumerate(target):
+        indices = (i+1)*np.ones(num_device_perChip)
+        plt.plot(indices,devices, 'ko', alpha=0.2)
+    xs = np.arange(1,num_chips+1)
+    plt.errorbar(xs,avg, yerr=std, alpha=0.8,fmt='o',ms=15)
+    
+    ## legend
+    plt.title("Single SQuID")
+    plt.xticks(xs,label_list)
+    ax = plt.gca()
+    #ax.set_yscale('log')
+    ax.set_ylabel("$I_c$ [$\mu$ A]")
+    plt.show()  
+##END make_plot
 
 
 def main():
     ## load data
-    dataFile = "data_hotJJ_101918.dat"
+    dataFile = "101918_hotJJ/data_hotJJ_101918.dat"
     with open(dataFile) as open_file:
         read = open_file.readlines()
         open_file.close()
-    paramp_str = read[3:36]
-    jj_str = read[44:-1]
+    paramp_str = read[2:36]
+    jj_str = read[39:-1]
     
-    ## use regular expressions to extract numbers
+    ## use regular expressions to extract 2 numbers (ints)
     re_template_paramp = "(\d{2,3})\D+(\d{2,3})"
-    re_template_jj= "(\d{2,3})\D+(\d{2,3})\D+(\d{2,3})"    
+    re_template_jj = "(\d{2,3})\D+(\d{2,3})\D+(\d{2,3})"
     
     num_chips = 5
-    paramp_list = [ [] for i in range(num_chips) ]
+    paramp_list = parse_input(paramp_str, re_template_paramp, num_chips,tmp=2)
+    jj_list= parse_input(jj_str, re_template_jj, num_chips,tmp=3)
     
-    chip_index = 0
-    for target_str in paramp_str:
-        if target_str[0] == "#":
-            print chip_index, paramp_list            
-            chip_index += 1
-            continue
-        found = re.findall(re_template_paramp, target_str) 
-        if len(found):
-            for add in found[0]:
-                paramp_list[chip_index].append(float(add))
-        else:
-            ##@@ HACK INCOMING
-            paramp_list[chip_index].append(-1)            
-            paramp_list[chip_index].append(-1)
-            continue
-    ##END loop through paramp measurements
-    ## convert to np array
-    paramp_list = np.array([ np.array(l) for l in paramp_list])
-
-    ## convert to real values    
-    #paramp_list[np.where(paramp_list<0)] = np.nan
-    resistance = voltage_to_resistance(paramp_list)
-    crit_curr = 270.0/resistance ## magic number from paramp 09/12/18 lookup table
+    ## ad hoc processing
+    paramp_list[0]  /= 10 ## probed with 100k bias resistor
+    paramp_list[-1] /= 10 ## probed with 100k bias resistor
+    jj_list[0] /= 10      ## probed with 100k bias resistor
+    paramp_list[np.where(paramp_list<0)] = np.nan
+    jj_list[np.where(jj_list<0)] = np.nan    
+    def scale_ic(x): return 12*x ## for array of squids, Ic of device is Ic of single squid
     
-    print crit_curr
     ## plots
-    avg = np.nanmean(crit_curr, axis=0)
-    device_perChip = len(paramp_list[0])
-    indices = np.arange(1,1+num_chips)*device_perChip
-    
-    print(avg)
-    
-    
+    make_plot(paramp_list, num_chips,scale_ic)
+    make_plot(jj_list, num_chips)    
+    plt.title("Single (blue), Array (red)")
 ##END main()
     
     
