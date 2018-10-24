@@ -18,24 +18,27 @@ def voltage_to_resistance(v_obs_uv,bias_r=1E6):
 ##END resistance_to_voltage
     
 
-def parse_input(input_list, regex_template, num_blocks,tmp=None):
+def parse_input(input_list, regex_template, num_blocks,num_cols):
     measure_list = [ [] for i in range(num_blocks) ]
     chip_index = 0
     for target_str in input_list:
-        if target_str[0] == "#": 
+        if "#" in target_str:
             chip_index += 1
             continue
         found = re.findall(regex_template, target_str) 
         if len(found):
-            for add in found[0]:
+            for gp,add in found:
                 measure_list[chip_index].append(float(add))
         else:
-            ##@@ HACK INCOMING
-            for i in range(tmp):
-                measure_list[chip_index].append(-1)            
+            print(target_str,"had no template matches")
     ##END loop through paramp measurements
     
+    ## np arrays should have equal length vectors to make matrix
+    for measured in measure_list:
+        while(len(measured) < num_cols):
+            measured.append(np.nan)
     ## convert to np array
+    
     return  np.array([ np.array(l) for l in measure_list])
 ##END parse_input
     
@@ -72,7 +75,7 @@ def make_plot(data, num_chips, ic_fun=None):
 
 def main():
     ## load data
-    dataFile = "101918_hotJJ/data_hotJJ_101918.dat"
+    dataFile = "data_hotJJ_101918.dat"
     with open(dataFile) as open_file:
         read = open_file.readlines()
         open_file.close()
@@ -80,24 +83,27 @@ def main():
     jj_str = read[39:-1]
     
     ## use regular expressions to extract 2 numbers (ints)
-    re_template_paramp = "(\d{2,3})\D+(\d{2,3})"
-    re_template_jj = "(\d{2,3})\D+(\d{2,3})\D+(\d{2,3})"
+    #re_template_paramp = "(\d{2,3})\D+(\d{2,3})"
+    #re_template_jj = "(\d{2,3})\D+(\d{2,3})\D+(\d{2,3})"
+    re_template = "((\d+\.?\d*)\suV)" 
     
-    num_chips = 5
-    paramp_list = parse_input(paramp_str, re_template_paramp, num_chips,tmp=2)
-    jj_list= parse_input(jj_str, re_template_jj, num_chips,tmp=3)
+    num_blocks = 5
+    paramp_list = parse_input(paramp_str, re_template, num_blocks,num_cols=12)
+    print(paramp_list)
+    return 0;
+    jj_list= parse_input(jj_str, re_template, num_blocks,num_cols=3)
     
     ## ad hoc processing
     paramp_list[0]  /= 10 ## probed with 100k bias resistor
     paramp_list[-1] /= 10 ## probed with 100k bias resistor
     jj_list[0] /= 10      ## probed with 100k bias resistor
-    paramp_list[np.where(paramp_list<0)] = np.nan
-    jj_list[np.where(jj_list<0)] = np.nan    
+    #paramp_list[np.where(paramp_list<0)] = np.nan
+    #jj_list[np.where(jj_list<0)] = np.nan    
     def scale_ic(x): return 12*x ## for array of squids, Ic of device is Ic of single squid
     
     ## plots
-    make_plot(paramp_list, num_chips,scale_ic)
-    make_plot(jj_list, num_chips)    
+    make_plot(paramp_list, num_blocks,scale_ic)
+    #make_plot(jj_list, num_chips)    
     plt.title("Single (blue), Array (red)")
 ##END main()
     
