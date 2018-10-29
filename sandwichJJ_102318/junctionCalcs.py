@@ -52,22 +52,37 @@ def parse_input(input_list, regex_template, num_blocks,num_cols=None):
                 new_row.append( float(addition) )
             measurement_list[block_index].append(new_row)
         else:
-            print(target_str,"has no template matches")
+            #print(target_str,"has no template matches")
             measurement_list[block_index].append([])
     ##END loop through measurements
     
     ## np arrays should have equal length vectors to make matrix
-    print(measurement_list); return measurement_list;
     if num_cols:
-        for i,measured in enumerate(measurement_list):
-            for j,row in enumerate(measured):
-                while(len(row) < num_cols):
-                    row.append(np.nan)
-                measured[j] = np.array(row)
-            measurement_list[i] = np.array(measured)
-        measurement_list = np.array(measurement_list)
-            
-    return  measurement_list
+        size_array = (block_index+1,len(measurement_list[0]), num_cols)
+        output = np.zeros(size_array)
+        for i in range(size_array[0]):
+            for j in range(size_array[1]):
+                k=0
+                while k < size_array[2]:
+                    try:
+                        output[i,j,k] = measurement_list[i][j][k]
+                    except IndexError:
+                        output[i,j,k] = np.nan
+                    k += 1
+    else:
+        return measurement_list
+    return output
+                    
+    '''
+    for i,measure_block in enumerate(measurement_list):
+        for j,row in enumerate(measure_block):
+            while(len(row) < num_cols):
+                row.append(np.nan)
+            measure_block[j] = np.array(row)
+        measurement_list[i] = np.array(measure_block)
+    return measurement_list
+    print(measurement_list); return measurement_list;
+    '''
 ##END parse_input
     
     
@@ -107,7 +122,7 @@ def main():
     ## use regular expressions to extract 2 numbers (ints)
     re_template = "((\d+\.?\d*)\suV)" # decimal number, then space then 'uV'
     num_blocks = 5
-    voltage_list = parse_input(read, re_template, num_blocks=num_blocks,num_cols=3)
+    voltage_list = parse_input(read, re_template, num_blocks=num_blocks,num_cols=4)
     return voltage_list;
     res, current = voltage_to_resistance_critCurr(voltage_list[0],bias_r=1E6)
     
@@ -129,4 +144,4 @@ def main():
     
     
 if __name__ == '__main__':
-    main()
+    ms = main()
