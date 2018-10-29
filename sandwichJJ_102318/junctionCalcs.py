@@ -34,13 +34,15 @@ def parse_input(input_list, regex_template, num_blocks,num_cols=None):
         in the same way as the input .dat file (second index is line #, third
         index is inter-row number)
     '''
-    measure_list = [ [] for i in range(num_blocks) ]
-    block_index = 0
     
+    measurement_list = [ [] ] # intialize to a list of one empty list
+    block_index = 0
     for target_str in input_list:
-        ## comment lines after initial comment header:
-        if "#" in target_str and len(measure_list):
-            block_index += 1
+        #print(len(measurement_list)); return 0;
+        if "#" in target_str: # comment line
+            if len(measurement_list[0]): ## not the first lines of the file
+                measurement_list.append([])
+                block_index += 1
             continue
         ## findall returns any match
         found = re.findall(regex_template, target_str) 
@@ -48,21 +50,24 @@ def parse_input(input_list, regex_template, num_blocks,num_cols=None):
             new_row = []
             for group,addition in found:
                 new_row.append( float(addition) )
-            measure_list[block_index].append(new_row)
+            measurement_list[block_index].append(new_row)
         else:
             print(target_str,"has no template matches")
+            measurement_list[block_index].append([])
     ##END loop through measurements
     
     ## np arrays should have equal length vectors to make matrix
+    print(measurement_list); return measurement_list;
     if num_cols:
-        for i,measured in enumerate(measure_list):
+        for i,measured in enumerate(measurement_list):
             for j,row in enumerate(measured):
                 while(len(row) < num_cols):
                     row.append(np.nan)
                 measured[j] = np.array(row)
-            measure_list[i] = np.array(measured)
+            measurement_list[i] = np.array(measured)
+        measurement_list = np.array(measurement_list)
             
-    return  np.array(measure_list)
+    return  measurement_list
 ##END parse_input
     
     
@@ -91,17 +96,19 @@ def make_plot(data, num_chips, ic_fun=None,x_labels=None):
     plt.show()  
 ##END make_plot
 
+
 def main():
     ## load data
-    dataFile = "blt_column1.dat"
+    dataFile = "sandwichJJ_102318_blt_q3Only.dat"
     with open(dataFile) as open_file:
         read = open_file.readlines()
         open_file.close()
 
     ## use regular expressions to extract 2 numbers (ints)
     re_template = "((\d+\.?\d*)\suV)" # decimal number, then space then 'uV'
-    num_blocks = 2
-    voltage_list = parse_input(read, re_template, num_blocks=1,num_cols=3)
+    num_blocks = 5
+    voltage_list = parse_input(read, re_template, num_blocks=num_blocks,num_cols=3)
+    return voltage_list;
     res, current = voltage_to_resistance_critCurr(voltage_list[0],bias_r=1E6)
     
     ## parse into dict
