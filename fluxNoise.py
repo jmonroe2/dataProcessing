@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 
-def parse_smith(data):
+def parse_smith(data,fs,electrical_delay=None):
     real = data[0::2]
     imag = data[1::2]
     
@@ -21,17 +21,11 @@ def parse_smith(data):
     logmag = 10*np.log10(linmag)
     phase = np.angle( real + 1j*imag)
     
-    ## unwrap electrical delay
-    ed = 67 ## units: nanoseconds
-    fs = np.linspace(1.95, 2.05, 501) ## units: GHz
-    
-    ## test cases
     uw_phase,diff = unwrap_phase(phase)
-    delayed = phase + ed*2*np.pi*fs 
-    
-    uw_delayed = uw_phase + ed*2*np.pi*fs
-    delayed_uw,tmp = unwrap_phase(delayed)
-    
+    span = max(fs) - min(fs)
+    if electrical_delay:
+        uw_phase += electrical_delay*(fs-min(fs))/span/1.4
+
     out_dict= {}
     out_dict["real"]= real
     out_dict["imag"]= imag
@@ -39,10 +33,7 @@ def parse_smith(data):
     out_dict["logmag"]= logmag
     out_dict["phase"]= phase
     
-    out_dict["uw"] = uw_phase
-    out_dict["ed"] = delayed
-    out_dict["uwed"] = uw_delayed
-    out_dict["eduw"] = delayed_uw
+    out_dict["shifted_phase"] = uw_phase
     return out_dict
 ##END parse_smith
     
@@ -64,8 +55,9 @@ def unwrap_phase(phase_rad):
         diffs.append(diff)
     return unwrapped, np.array(diffs)
 ##END unwrap_phase
+     
 
-def main():
+def process_paramps():
     data_dir = r"C:\Data\2018\paramp_jm091218.1c_100918\noiseAt2GHz_BNC_2.0GHz_-20.60dBm_fluxUnknown"
     data_dir.replace("\\","/")
     file_name = "vna_1.95,2.05Ghz_-50dBm"
@@ -79,25 +71,54 @@ def main():
     fs = np.linspace(fmin,fmax, data.shape[0]//2)
     for i in range(data.shape[1]):
         sweep = data[:,i]
-        smith_dict = parse_smith(sweep)
+        smith_dict = parse_smith(sweep,fs)
         phase = smith_dict["phase"] 
         phase_fluxSweep[:,i] = phase
     
     ## make plots
     phase = smith_dict["phase"]
-    uwed = smith_dict["uwed"]
-    eduw = smith_dict["eduw"]
     
     ax_left = plt.gca()
     plt.plot(fs, uwed, label="unwrapped")
-    ax_right = ax_left.twinx()
-    plt.plot(fs+0.01, eduw,label="electrical delay", color='orange')
-    #plt.imshow(phase_fluxSweep, extent=[fmin,fmax,0,71],aspect='auto')
+#    ax_right = ax_left.twinx()
+#    plt.plot(fs+0.01, ed,label="electrical delay", color='orange')
+#    #plt.imshow(phase_fluxSweep, extent=[fmin,fmax,0,71],aspect='auto')
+    plt.legend()
     
     plt.show()
-    return phase
+##END process_paramps
+    
+
+def process_testData():
+    data_dir = r"C:\Data\2018\101818_testData"
+    data_dir.replace(r"\\","/")
+    file_name = "trans_cavityTL092518_7.96,8.06GHz_0dBm_electricalDelay_0ns.dat"
+    fmin,fmax= 7.96,8.06
+    
+    ## load data
+    data = np.loadtxt(data_dir + '/' + file_name)   
+    fs = np.linspace(fmin,fmax, len(data)//2)
+    smith_dict = parse_smith(data,fs,electrical_delay=67)
+    
+    ## make plots
+    phase = smith_dict["phase"]
+    shifted_phase = smith_dict["shifted_phase"]
+    
+    ax_left = plt.gca()
+    plt.plot(fs, shifted_phase)
+#    ax_right = ax_left.twinx()
+#    plt.plot(fs+0.01, ed,label="electrical delay", color='orange')
+#    #plt.imshow(phase_fluxSweep, extent=[fmin,fmax,0,71],aspect='auto')
+    plt.legend()
+    
+    plt.show()
+##END process_testData
+    
+def main():
+    #process_paramps()
+    process_testData()
 ##END main
 
 if __name__ == '__main__':
-    foo = main()
+    phase = main()
 
