@@ -1,0 +1,35 @@
+## data file for Planar qubits: Sandwich JJ 10/23/18 BLT Q3
+93.3 uV, 140 uV*, 111 uV
+147 uV, 135 uV, open
+191 uV, 183 uV
+200 uV,  open
+303 uV!, 254 uV, 209 uV, 120 uV
+66 uV
+#
+Open, 275 uV, open
+Open, open, 205 uV
+Open, open
+Open, open
+No measurement
+110 uV
+#
+223 uV, open, 173 uV
+198 uV, open, 217 uV
+Open, open
+Open, oepn
+No measurement
+Open
+#
+Open, open, open
+157 uV, 186 uV, 156 uV
+Open, open
+Open, open
+250 uV, open
+64 uV
+#
+66 uV, 63 uV, 94 uV
+81 uV, 71 uV, 85 uV
+146 uV, 101 uV
+195 uV, 215 uV
+175 uV, 172, 174 uV, short
+Short?
