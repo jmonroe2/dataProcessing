@@ -10,54 +10,72 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import re
 
-def voltage_to_resistance(v_obs_uv,bias_r=1E6):
+def voltage_to_resistance_critCurr(v_obs_uv,bias_r=1E6):
     v_mon = 0.939E-3 # volts
     v = np.array(v_obs_uv)*1E-6/v_mon
+    res = bias_r/(1/v-1) ## from solving for Rs in voltage divider
+    i_c = 270.0/res ## magic number from paramp 09/12/18 lookup table
     
-    return bias_r/(1/v-1) ## from solving for Rs in voltage divider
+    
+    return res, i_c 
 ##END resistance_to_voltage
     
 
-def parse_input(input_list, regex_template, num_blocks,num_cols):
+def parse_input(input_list, regex_template, num_blocks,num_cols=None):
+    '''
+    A function to extract all voltage measurements from a list of .dat file lines
+    input_list: string list of rows of .dat file
+    regex_template: template to search for
+    num_blocks: how many comments to expect
+    (num_cols): if you'd like a matrix, this parameter will pad cols with nan
+    
+    return
+    3D matrix where each "block" (first index) contains a matrix structured
+        in the same way as the input .dat file (second index is line #, third
+        index is inter-row number)
+    '''
     measure_list = [ [] for i in range(num_blocks) ]
-    chip_index = 0
+    block_index = 0
+    
     for target_str in input_list:
-        if "#" in target_str:
-            chip_index += 1
+        ## comment lines after initial comment header:
+        if "#" in target_str and len(measure_list):
+            block_index += 1
             continue
+        ## findall returns any match
         found = re.findall(regex_template, target_str) 
         if len(found):
-            for gp,add in found:
-                measure_list[chip_index].append(float(add))
+            new_row = []
+            for group,addition in found:
+                new_row.append( float(addition) )
+            measure_list[block_index].append(new_row)
         else:
-            print(target_str,"had no template matches")
-    ##END loop through paramp measurements
+            print(target_str,"has no template matches")
+    ##END loop through measurements
     
     ## np arrays should have equal length vectors to make matrix
-    for measured in measure_list:
-        while(len(measured) < num_cols):
-            measured.append(np.nan)
-    ## convert to np array
-    
-    return  np.array([ np.array(l) for l in measure_list])
+    if num_cols:
+        for i,measured in enumerate(measure_list):
+            for j,row in enumerate(measured):
+                while(len(row) < num_cols):
+                    row.append(np.nan)
+                measured[j] = np.array(row)
+            measure_list[i] = np.array(measured)
+            
+    return  np.array(measure_list)
 ##END parse_input
     
     
-def make_plot(data, num_chips, ic_fun=None):
-    resistance = voltage_to_resistance(data)
-    crit_curr = 270.0/resistance ## magic number from paramp 09/12/18 lookup table
-    if ic_fun is not None:
-        ic_fun(crit_curr)
-    target = crit_curr ## what to plot
-    
-    ## plots
-    label_list = ['Baseline 1/2', '50 C, 15 sec', '50 C, 2 min', \
-                  '50 C, 5 min',  'Baseline 2/2']
+def make_plot(data, num_chips, ic_fun=None,x_labels=None):
+    '''
+    data: matrix of points to plot with index 0 is repe
+    '''
     num_device_perChip = len(data[0])
-    avg = np.nanmean(target, axis=1)
-    var = np.nanvar(target, axis=1)
+    avg = np.nanmean(data, axis=0)
+    var = np.nanvar(data, axis=0)
     std = np.sqrt(var/num_device_perChip)
-    for i,devices in enumerate(target):
+    
+    for i,devices in enumerate(data):
         indices = (i+1)*np.ones(num_device_perChip)
         plt.plot(indices,devices, 'ko', alpha=0.2)
     xs = np.arange(1,num_chips+1)
@@ -65,44 +83,39 @@ def make_plot(data, num_chips, ic_fun=None):
     
     ## legend
     plt.title("Single SQuID")
-    plt.xticks(xs,label_list)
+    if x_labels:
+        plt.xticks(xs,x_labels)
     ax = plt.gca()
     #ax.set_yscale('log')
     ax.set_ylabel("$I_c$ [$\mu$ A]")
     plt.show()  
 ##END make_plot
 
-
 def main():
     ## load data
-    dataFile = "data_hotJJ_101918.dat"
+    dataFile = "blt_column1.dat"
     with open(dataFile) as open_file:
         read = open_file.readlines()
         open_file.close()
-    paramp_str = read[2:36]
-    jj_str = read[39:-1]
-    
+
     ## use regular expressions to extract 2 numbers (ints)
-    #re_template_paramp = "(\d{2,3})\D+(\d{2,3})"
-    #re_template_jj = "(\d{2,3})\D+(\d{2,3})\D+(\d{2,3})"
-    re_template = "((\d+\.?\d*)\suV)" 
+    re_template = "((\d+\.?\d*)\suV)" # decimal number, then space then 'uV'
+    num_blocks = 2
+    voltage_list = parse_input(read, re_template, num_blocks=1,num_cols=3)
+    res, current = voltage_to_resistance_critCurr(voltage_list[0],bias_r=1E6)
     
-    num_blocks = 5
-    paramp_list = parse_input(paramp_str, re_template, num_blocks,num_cols=12)
-    print(paramp_list)
-    return 0;
-    jj_list= parse_input(jj_str, re_template, num_blocks,num_cols=3)
+    ## parse into dict
+    numJJ_template = np.array([[1, 1, 1, 0],
+                               [2, 2, 2, 0],
+                               [4, 4, 0, 0],
+                               [8, 8, 0, 0],
+                               [8, 4, 2, 1],
+                               [1, 0, 0, 0]])
     
-    ## ad hoc processing
-    paramp_list[0]  /= 10 ## probed with 100k bias resistor
-    paramp_list[-1] /= 10 ## probed with 100k bias resistor
-    jj_list[0] /= 10      ## probed with 100k bias resistor
-    #paramp_list[np.where(paramp_list<0)] = np.nan
-    #jj_list[np.where(jj_list<0)] = np.nan    
-    def scale_ic(x): return 12*x ## for array of squids, Ic of device is Ic of single squid
+    numJunctions_dict = {}
     
     ## plots
-    make_plot(paramp_list, num_blocks,scale_ic)
+    make_plot(current, num_blocks)
     #make_plot(jj_list, num_chips)    
     plt.title("Single (blue), Array (red)")
 ##END main()
