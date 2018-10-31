@@ -1,0 +1,37 @@
+## data file for Planar qubits: Sandwich JJ 10/23/18 Codename:PBJ Quarter 3
+# column 1
+7.3 uV, 9.5 uV, 10 uV
+18.2 uV, 18.0 uV, 20.0 uV
+24.0 uV, 36.0 uV
+42.7 uV, 171 uV
+82.3 uV, 52.3 uV, 30.5 uV, 9.6 uV
+8.0 uV
+# column 2
+11.5 uV, 12 uV, 13 uV
+25.6 uV, 24.5 uV, 20.0 uV
+50.0 uV, 63.5 uV
+54.0 uV, 69.5 uV
+146 uV, 104.5 uV, 99.6 uV, 11.2 uV
+8.0 uV
+# column 3
+Open, 6.8 uV, 8.0 uV
+21.7 uV, 20.1 uV, 11.2 uV
+32.1 uV, 35.6 uV
+46.8 uV, 56.6 uV
+65.1 uV, 49.7 uV, 21.2 uV, 5.2 uV
+5.6 uV
+# column 4
+4.4 uV, 5.0 uV, 5.0 uV
+10 uV, 12.5 uV, 11.0 uV
+15.7 uV, 21.0 uV
+39.0 uV, 37.3 uV
+46.4 uV, 26.6 uV, 12.4 uV, 3.8 uV
+4.9 uV
+# column 5
+6.2 uV, 2.8 uV, 14.0 uV^
+9.1 uV, open, 7.3 uV
+12.2 uV, 15.8 uV
+33.0 uV, 31.3 uV
+49.4 uV, 25.3 uV, 12.9 uV, 3.2 uV
+4.7 uV
+
