@@ -95,7 +95,7 @@ def addToPlot_res_numJJ(resistance,color=None):
         for i in range(num_rows):
             for j in range(num_cols):
                 num_jj = numJJ_template[i,j]
-                if not sorted_byNumJJ_dict.has_key(num_jj):
+                if not num_jj in sorted_byNumJJ_dict.keys():
                     sorted_byNumJJ_dict[num_jj] = []
                 sorted_byNumJJ_dict[num_jj].append(chip_column[i,j])
         ##END loop through single block
@@ -143,8 +143,8 @@ def plot_resistance_vs_numJunctions():
     
     ## make a custom legend
     box_outline = dict(facecolor='white', alpha=0.8)
-    x_pos,y_pos = 9,500
-    gap = 100
+    x_pos,y_pos = 9,400
+    gap = 55
     plt.text(x_pos,y_pos,"PBJ Q3\n(No extra $O_2$) ", color='red',bbox=box_outline)  
     plt.text(x_pos,y_pos-1*gap,"PBJ Q4\n(No extra $O_2$)", color='orange',bbox=box_outline)  
     plt.text(x_pos,y_pos-2*gap,"BLT Q3\n(0.5 nm Al$O_x$)", color='purple',bbox=box_outline)  
