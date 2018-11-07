@@ -9,7 +9,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import re
-from matplotlib.lines import Line2D
 
 
 def voltage_to_resistance_critCurr(v_obs_uv,bias_r=1E6):
@@ -77,7 +76,7 @@ def parse_input(input_list, regex_template, num_blocks,num_cols=None):
 ##END parse_input
     
     
-def addToPlot_res_numJJ(resistance,color=None):
+def addToPlot_res_numJJ(resistance,style_dict=None):
     res = resistance/1E3
     ## parse into dict
     numJJ_template = np.array([[1, 1, 1, 0],
@@ -109,8 +108,7 @@ def addToPlot_res_numJJ(resistance,color=None):
         ## plot average
         avg = np.nanmean(resistance_list)        
         std = np.nanstd(resistance_list)
-        c = color if color else 'black'
-        plt.errorbar(num_jj,avg, yerr=std, alpha=0.8,fmt='o',ms=15,color=c)
+        plt.errorbar(num_jj,avg, yerr=std, **style_dict)
     ##END loop through number of junctions
     plt.xlabel("Number of SQuIDs")
     plt.ylabel("RT Resistance [k$\Omega$]")
@@ -121,12 +119,24 @@ def addToPlot_res_numJJ(resistance,color=None):
 def plot_resistance_vs_numJunctions():
     ## load data
     #dataFile = "sandwichJJ_102318_blt_q3Only.dat"
-    dataFile_list = ["sandwichJJ_102318_pbj_q3.dat", \
-    "sandwichJJ_102318_pbj_q4.dat",\
-    "sandwichJJ_102318_blt_q3.dat",\
-    "sandwichJJ_102318_sub_q4.dat"]
+    dataFile_list = []
+    base_name = "sandwichJJ_102318"
+    codename_list = ["pbj","blt","sub","loaf"]
+    quarterIndex_list = [3,4]
+    for q in quarterIndex_list:
+        for codename in codename_list:
+            next_file = base_name+f"_{codename}_q{q}.dat"
+            dataFile_list.append(next_file)
+    ##END loop through codenames
+    
     for i,dataFile in enumerate(dataFile_list):
-        data_color = ['red', 'orange', 'purple', 'cyan'][i]
+        # setup formating
+        data_color = ['red', 'purple', 'cyan', 'orange'][i%4]
+        codename = codename_list[i%4]
+        outline = [0, 2][(i//4)%2] ## Q3 is empty, Q4 gets thick outline
+        print(dataFile, data_color, outline)
+        
+        # load file
         with open(dataFile) as open_file:
             read = open_file.readlines()
             open_file.close()
@@ -138,7 +148,9 @@ def plot_resistance_vs_numJunctions():
         res, current = voltage_to_resistance_critCurr(voltage_list,bias_r=1E6)
         
         ## do specific analysis
-        addToPlot_res_numJJ(res,color=data_color)
+        style_dict = {'color':data_color,'markeredgewidth':outline,'ms':15,
+                      'alpha':0.8, 'fmt':'o','markeredgecolor':'k'} 
+        addToPlot_res_numJJ(res,style_dict=style_dict)
     ##END loop through files
     
     ## make a custom legend
@@ -146,9 +158,9 @@ def plot_resistance_vs_numJunctions():
     x_pos,y_pos = 9,400
     gap = 55
     plt.text(x_pos,y_pos,"PBJ Q3\n(No extra $O_2$) ", color='red',bbox=box_outline)  
-    plt.text(x_pos,y_pos-1*gap,"PBJ Q4\n(No extra $O_2$)", color='orange',bbox=box_outline)  
-    plt.text(x_pos,y_pos-2*gap,"BLT Q3\n(0.5 nm Al$O_x$)", color='purple',bbox=box_outline)  
-    plt.text(x_pos,y_pos-3*gap,"SUB Q4\n(ibid, $45^\circ$ evap)", color='cyan',bbox=box_outline)  
+    plt.text(x_pos,y_pos-1*gap,"BLT Q3\n(0.5 nm Al$O_x$)", color='purple',bbox=box_outline)  
+    plt.text(x_pos,y_pos-2*gap,"SUB Q4\n(ibid, $45^\circ$ evap)", color='cyan',bbox=box_outline)  
+    plt.text(x_pos,y_pos-3*gap,"PBJ Q4\n(No extra $O_2$)", color='orange',bbox=box_outline)  
     
     ## more labels
     plt.title("Sandwich Junction test 10/23/18")
