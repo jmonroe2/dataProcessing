@@ -1,0 +1,35 @@
+## data file for Planar qubits: Sandwich JJ 10/23/18 codename:Sub Quarter 3
+# column 1
+open
+open
+open
+open
+open
+open
+# column 2
+21.4 uV, 3.9 uV(s), 18.1 uV
+49.9 uV, 15.6 uV(1s), open(s)
+87.4 uV, 61.6 uV
+190.4 uV, open (680)
+Open (670), 377.1 uV, 265.4 uV, 286.5 uV
+22.0 uV
+# column 3
+Open (354.7,s), open (815), 16.1 uV 
+Open (540,s), short (3.5), short
+64.9 uV, 46.2 uV(1s)
+67.5 uV (4s), 34.6 uV(7s)
+Open (574), open(342), open(350), open (840); 5s+3s+1s+1s
+20.5 uV 
+# column 4
+22.8 uV, 17.7 uV, 20.3 uV
+39.4 uV, 39.3 uV, 18.8 uV (1s)
+237.7 uV(1s), 54.0 uV (1s)
+Open (840), open (750)
+X, X, X, short, short; 2s+n+2s+1s
+Short@
+# Column 4
+Short@, 16.3 uV, 37.3 uV
+short@, short@, short
+28.6 uV(2s), 48.8 uV(1s)
+62.1 uV (4s), 50.0 uV(5s); 6s+4s+2s+1s (short)
+59.3 uV

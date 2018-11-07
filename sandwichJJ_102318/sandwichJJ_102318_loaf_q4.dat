@@ -1,0 +1,36 @@
+## data file for Planar qubits: Sandwich JJ 10/23/18 codename:loaf Quarter 4
+# column 1
+1.6 uV, 1.6 uV, 1.8 uV
+2.6 uV, 2.6 uV, 2.5 uV
+4.9 uV, 4.8 uV*
+9 uV*, 9.4 uV
+16.5 uV, 8.6 uV, 3.9 uV, 1.5 uV
+1.6 uV
+# column 2
+1.3 uV, 1.5 uV, 1.4 uV
+3.1 uV, 3.0 uV, 2.2 uV
+4.6 uV, 4.2 uV
+9.3 uV, 8.5 uV
+16.0 uV, 7.9 uV, 3.8 uV, 1.3 uV
+1.7 uV
+# column 3
+1.9 uV, 2.4 uV, 2.0 uV
+4.0 uV, 3.5 uV, 2.2 uV
+5.9 uV, 6.8 uV
+9.2 uV, 8.8 uV
+14.4 uV, 7.5 uV, 3.5 uV, 1.3 uV 
+1.6 uV
+# column 4
+1.5 uV,short@, open@(840)
+4.0 uV, 3.8 uV, 3.6 uV
+6.1 uV, 7.0 uV
+11.0 uV, 10.7 uV(1s) 
+17.1 uV, 8.8 uV, 3.9 uV, 1.5 uV
+1.3 uV
+# column 5
+Short&, 1.1 uV, 1.4 uV
+3.1 uV, 2.6 uV, 2.4 uV
+6.0 uV, 5.2 uV
+9.1 uV, 9.5 uV
+17.7 uV, 8.2 uV, 3.9 uV, 1.6 uV
+2.0 uV&

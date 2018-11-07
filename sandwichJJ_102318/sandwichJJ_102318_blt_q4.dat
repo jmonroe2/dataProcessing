@@ -1,0 +1,36 @@
+## data file for Planar qubits: Sandwich JJ 10/23/18 Codename:BLT Quarter 4
+# column 1
+120 uV, open**,  81 uV
+155 uV, 76 uV, 159 uV
+83 uV, 166 uV
+98 uV, 90 uV
+208 uV,207 uV, 162 uV, 134 uV
+38 uV
+# column 2
+15 uV, 51 uV, 41 uV
+159 uV, 54 uV, 47 uV
+74 uV, 68 uV
+87 uV (o?), 72 uV(o)
+96 uV, 82 uV, 70 uV, 44.2 uV
+42 uV
+# column 3
+68 uV, 78 uV, 51 uV
+Open**, 82 uV(s), 56 uV
+118 uV, 86.4 uV
+79 uV, 91 uV
+115.8 uV(open),108.8 uV,96.7 uV(s), 68.4 uV
+39.1 uV
+# column 4
+liftoff, 39.2 uV, 42 uV
+53 uV, 54.6 uV, 47 uV 
+72 uV, 58 uV
+68 uV (1s), 68 uV
+84 uV, 71 uV, 49 uV, 35 uV
+32 uV(O?)
+# column 5
+108.5 uV, 60 uV, 28 uV
+61 uV, open (360 uV), 76 uV
+85 uV, 49 uV
+70 uV, 61 uV
+85 uV, 77 uV, 56 uV, 30 uV
+25 uV
