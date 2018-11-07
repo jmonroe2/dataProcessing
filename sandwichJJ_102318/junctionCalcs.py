@@ -159,8 +159,17 @@ def plot_resistance_vs_numJunctions():
 ##END plot_resistance_vs_numJunctions
     
     
+def plot_chip_variation():
+    ## load data
+    ## function: get first junction
+    ## based on chip number, is exterior the first or last column?
+    ## add to plot
+##END plot_chip_variation
+    
+    
 def main():
     plot_resistance_vs_numJunctions()
+    plot_chip_variation()
 ##END main()
     
     
