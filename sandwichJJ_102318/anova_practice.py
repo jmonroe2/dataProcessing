@@ -93,11 +93,67 @@ def correlation_plot(data):
 ##END correlation_plot
 
 
+def singleWay_anova(data):
+    ## calculate F for each trace of data
+    
+    ##begin ANOVA
+    m = np.mean(data)
+    n_tests = data.shape[1]
+    n_samples = data.shape[0]
+    
+    squares = (np.mean(data,axis=0) -m)**2
+    SS_sample = np.sum(squares)
+    SS_sample *= n_samples/(n_tests-1)
+    
+    squares = np.var(data,axis=0)*n_samples
+    SS_err = np.sum(squares)
+    SS_err /= n_tests*(n_samples-1)
+    
+    return SS_sample/SS_err
+    
+##END singleWay_anova
+    
+
+def make_pareto_plot(data):
+    anova_dict = {}
+    
+    for index in range(4):
+        label = "ABCD"[index]
+        on_slice = data[np.where(data[:,index]==1)]
+        off_slice = data[np.where(data[:,index]==0)]
+        
+        on_data = on_slice[ :,-1]
+        off_data = off_slice[:,-1]
+        all_data = np.zeros((len(on_data), 2))
+        all_data[:,0] = off_data
+        all_data[:,1] = on_data
+        
+        result = singleWay_anova(all_data)
+        anova_dict[result] = label ## easier to sort keys than values
+    ##END through single anova loop
+    
+    
+    
+    ## double anova double fun
+##END data
+    
 def main():
     data = get_data()
     
     #factor_plot(data)
-    correlation_plot(data)
+    #correlation_plot(data)
+    
+    ## ANOVA
+    make_pareto_plot(data)
+   
+    test_data = np.array([[6, 8, 13],
+              [8, 12, 9],
+              [4, 9, 11],
+              [5, 11, 8],
+              [3, 6, 7],
+              [4, 8, 12]])
+    singleWay_anova(test_data)
+    singleWay_anova(all_data)
     plt.show()
 ##END main
    
