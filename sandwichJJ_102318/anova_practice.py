@@ -127,16 +127,21 @@ def textbook_anova(data):
     n_tests = data.shape[1]
     
     tot = np.sum(data)
-    marginal = np.sum(data,axis=0)/n_samples
-    SS_treatments = sum(marginal**2) - tot**2/data.size
+    marginal = np.sum(data,axis=0)
+    SS_treatments = sum(marginal**2)/n_samples - tot**2/data.size
     df = n_tests-1
     MS_treatments = SS_treatments/df
-    print("treat", SS_treatments, df)
-    
-    mar_var = np.var(data,axis=0)*n_samples
-    SS_err = n_tests*np.sum(mar_var)
-    df = n_samples-1
+    print(SS_treatments, df)
+   
+    ## SS error is whatever isn't accounted for with treatment: SS_tot - SS_treat
+    m = np.mean(data)
+    SS_tot = np.sum( (data-m)**2 )
+    SS_tot = (data.size-1)*np.var(data)  
+    SS_err = SS_tot - SS_treatments
+    df = data.size-n_samples
+
     MS_err = SS_err/df
+
     print("error", SS_err, df)
     
     return MS_treatments/MS_err
@@ -163,7 +168,8 @@ def make_pareto_plot(data):
     
     ## double anova double fun
 ##END data
-    
+   
+ 
 def test_anova(data,num_avg):
     ## 2-factor data is structured as matrix in dim1 x dim2, but repetitions
     ##  are included in rows
@@ -174,12 +180,21 @@ def test_anova(data,num_avg):
     y2  p5       p7
         p8       p9
     """
-    num_cols = data.shape[0]//num_avg
-    num_rows = data.shape[1]
-    ## do y-stats
-    f = textbook_anova(data.T)
-    print(f)
+    num_treat1 = data.shape[0]//num_avg
+    num_treat2 = data.shape[1]
+
+    m = np.sum(data)**2/data.size ## grand mean
+
+    ## do V-stats
+    marginal = np.sum(data,axis=1)
+    SS_v = np.mean(marginal**2) 
+    print(SS_v)
+    
     ## rearrange for x-stats
+
+    ## do x-y stats
+    
+    ## now calculate tot = x + y + xy + err to get err to get F_i = MS_i/MS_err
     
 ##END test_anova
     
