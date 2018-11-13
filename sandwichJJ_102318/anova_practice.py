@@ -94,24 +94,53 @@ def correlation_plot(data):
 
 
 def singleWay_anova(data):
-    ## calculate F for each trace of data
+    ## calculate F for each trace of data by comparing mean square (MS) of 
+    ##   the categories to the MS of the cross-group data.
     
     ##begin ANOVA
     m = np.mean(data)
-    n_tests = data.shape[1]
+    m = 0 ## don't subtract mean according to textbook
     n_samples = data.shape[0]
+    n_tests = data.shape[1]
     
     squares = (np.mean(data,axis=0) -m)**2
-    SS_sample = np.sum(squares)
-    SS_sample *= n_samples/(n_tests-1)
+    SS_sample = n_samples*np.sum(squares)
+    df = n_tests-1
+    MS_sample = SS_sample/df
+    print("sample", SS_sample, df)
     
     squares = np.var(data,axis=0)*n_samples
-    SS_err = np.sum(squares)
-    SS_err /= n_tests*(n_samples-1)
+    SS_err = n_tests*np.sum(squares)
+    df = n_samples-1
+    MS_err = SS_err/df
+    print("error", SS_err, df)
     
-    return SS_sample/SS_err
-    
+    return MS_sample/MS_err
 ##END singleWay_anova
+    
+
+def textbook_anova(data):
+    ## calculate F for each trace of data by comparing mean square (MS) of 
+    ##   the categories to the MS of the cross-group data.
+    print("TBA")
+    n_samples = data.shape[0]
+    n_tests = data.shape[1]
+    
+    tot = np.sum(data)
+    marginal = np.sum(data,axis=0)/n_samples
+    SS_treatments = sum(marginal**2) - tot**2/data.size
+    df = n_tests-1
+    MS_treatments = SS_treatments/df
+    print("treat", SS_treatments, df)
+    
+    mar_var = np.var(data,axis=0)*n_samples
+    SS_err = n_tests*np.sum(mar_var)
+    df = n_samples-1
+    MS_err = SS_err/df
+    print("error", SS_err, df)
+    
+    return MS_treatments/MS_err
+##END textBook_anova
     
 
 def make_pareto_plot(data):
@@ -132,10 +161,28 @@ def make_pareto_plot(data):
         anova_dict[result] = label ## easier to sort keys than values
     ##END through single anova loop
     
-    
-    
     ## double anova double fun
 ##END data
+    
+def test_anova(data,num_avg):
+    ## 2-factor data is structured as matrix in dim1 x dim2, but repetitions
+    ##  are included in rows
+    """ For 2 factors with 2 repetitions
+        x1       x2
+    y1  p1       p3
+        p2       p4
+    y2  p5       p7
+        p8       p9
+    """
+    num_cols = data.shape[0]//num_avg
+    num_rows = data.shape[1]
+    ## do y-stats
+    f = textbook_anova(data.T)
+    print(f)
+    ## rearrange for x-stats
+    
+##END test_anova
+    
     
 def main():
     data = get_data()
@@ -144,14 +191,13 @@ def main():
     #correlation_plot(data)
     
     ## ANOVA
-    make_pareto_plot(data)
-   
-    test_data = np.array([[6, 8, 13],
-              [8, 12, 9],
-              [4, 9, 11],
-              [5, 11, 8],
-              [3, 6, 7],
-              [4, 8, 12]])
+    #make_pareto_plot(data)
+    test_data = np.array([[48, 58, 28, 33, 7, 15],
+                          [62, 54, 14, 10, 9, 6]])
+
+    test_anova(test_data,2)
+    return 0;
+
     singleWay_anova(test_data)
     singleWay_anova(all_data)
     plt.show()
