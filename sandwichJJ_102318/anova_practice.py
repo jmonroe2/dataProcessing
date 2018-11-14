@@ -175,24 +175,33 @@ def test_anova(data,num_avg):
     ##  are included in rows
     """ For 2 factors with 2 repetitions
         x1       x2
-    y1  p1       p3
-        p2       p4
-    y2  p5       p7
-        p8       p9
+    y1  p1_list  p2_list    p3_list
+    y2  p4_list  p5_list    p6_list
     """
-    num_treat1 = data.shape[0]//num_avg
-    num_treat2 = data.shape[1]
+    num_treat0 = data.shape[0]
+    num_treat1 = data.shape[1]
+    num_avg = data.shape[2]
+    averaged = np.mean(data,axis=2)
 
-    m = np.sum(data)**2/data.size ## grand mean
+    m = np.sum(averaged*num_avg)**2/data.size ## grand sum of squares, mean?
 
     ## do V-stats
-    marginal = np.sum(data,axis=1)
-    SS_v = np.mean(marginal**2) 
-    print(SS_v)
+    marginal = np.sum(averaged*2,axis=1)
+    df = num_treat1*num_avg
+    SS_v = np.sum(marginal**2)/df  -m
+    print("V:", SS_v)
     
-    ## rearrange for x-stats
+    ## rearrange for E-stats
+    marginal = np.sum(averaged*2,axis=0)
+    df = num_treat0*num_avg
+    SS_e = np.sum(marginal**2)/df  -m
+    print("E:", SS_e)
 
-    ## do x-y stats
+    ## do E-V stats
+    SS_allTreats = np.sum(data**2)
+    df = 4-1.
+    print(SS_allTreats)
+    print(SS_e)
     
     ## now calculate tot = x + y + xy + err to get err to get F_i = MS_i/MS_err
     
@@ -207,11 +216,23 @@ def main():
     
     ## ANOVA
     #make_pareto_plot(data)
-    test_data = np.array([[48, 58, 28, 33, 7, 15],
-                          [62, 54, 14, 10, 9, 6]])
+    ## from textbook
+    test_data = np.array([[[48, 58], [28, 33], [7, 15]],
+                          [[62, 54], [14, 10], [9, 6]]])
 
-    test_anova(test_data,2)
+    a_on = data[np.where(data[:,0] ==1)]
+    a_off = data[np.where(data[:,0] ==0)]
+    c_on_indices = np.where(a_on[:,2] ==1)
+    c_off_indices = np.where(a_on[:,2] ==0)
+    ## datum columns: a on, off, rows: c on, c off
+    #datum = [[ a_on[np.where(a_on[:,2] == 1)][:,-1],  a_on[np.where(a_on[:,2] == 0)][:,-1] ],
+    #         [ a_off[np.where(a_off[:,2] == 1)][:,-1],  a_off[np.where(a_off[:,2] == 0)][:,-1] ]]
+    datum = [[ a_on[c_on_indices][:,-1] , a_off[c_on_indices][:,-1]  ] ,
+             [ a_on[c_off_indices][:,-1], a_off[c_off_indices][:,-1] ] ]
+
+    print(datum)
     return 0;
+    test_anova(data,2)
 
     singleWay_anova(test_data)
     singleWay_anova(all_data)
