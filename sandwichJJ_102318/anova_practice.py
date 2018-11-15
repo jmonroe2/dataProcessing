@@ -197,10 +197,9 @@ def test_anova(data,num_avg):
     print("E:", SS_e)
 
     ## do E-V stats
-    SS_allTreats = np.sum(data**2)
-    df = 4-1.
+    SS_allTreats = np.sum(data**2) - m
+    df = 2.
     print(SS_allTreats)
-    print(SS_e)
     
     ## now calculate tot = x + y + xy + err to get err to get F_i = MS_i/MS_err
     
@@ -229,9 +228,9 @@ def main():
     datum = [[ a_on[c_on_indices][:,-1] , a_off[c_on_indices][:,-1]  ] ,
              [ a_on[c_off_indices][:,-1], a_off[c_off_indices][:,-1] ] ]
 
-    print(datum)
+    #print(datum)
+    test_anova(test_data,2)
     return 0;
-    test_anova(data,2)
 
     singleWay_anova(test_data)
     singleWay_anova(all_data)
