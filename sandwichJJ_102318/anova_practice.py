@@ -169,7 +169,7 @@ def make_pareto_plot(data):
 ##END data
    
  
-def test_anova(data,num_avg):
+def test_anova(data):
     ## 2-factor data is structured as matrix in dim1 x dim2, but repetitions
     ##  are included in rows
     """ For 2 factors with 2 repetitions
@@ -185,22 +185,35 @@ def test_anova(data,num_avg):
     m = np.sum(averaged*num_avg)**2/data.size ## grand sum of squares, mean?
 
     ## do V-stats
-    marginal = np.sum(averaged*2,axis=1)
+    marginal = np.sum(averaged*num_avg,axis=1)
     df = num_treat1*num_avg
     SS_v = np.sum(marginal**2)/df  -m
     print("V:", SS_v)
     
-    ## rearrange for E-stats
-    marginal = np.sum(averaged*2,axis=0)
+    ## do E-stats
+    marginal = np.sum(averaged*num_avg,axis=0)
     df = num_treat0*num_avg
     SS_e = np.sum(marginal**2)/df  -m
     print("E:", SS_e)
-
-    ## do E-V stats
-    SS_allTreats = np.sum(data**2) - m
-    df = 2.
-    print(SS_allTreats)
     
+    ## do E*V stats
+    flat = data.copy()
+    flat.shape = (6,2)
+    marginal = np.sum(flat,axis=0)
+    diff = np.sum(marginal**2)/5 - np.sum(flat)**2/flat.size
+    print("ExV:", diff)
+    return 0;
+
+    SS_int = 1
+    
+    ## total
+    marg_tot = data-np.mean(data)
+    SS_total = np.sum(marg_tot**2)
+    print("total", SS_total)
+    
+    ## error
+    SS_err = SS_total - SS_v - SS_e - SS_int
+    df = (num_treat0-1)*(num_treat1-1)
     ## now calculate tot = x + y + xy + err to get err to get F_i = MS_i/MS_err
     
 ##END test_anova
@@ -227,9 +240,9 @@ def main():
     #         [ a_off[np.where(a_off[:,2] == 1)][:,-1],  a_off[np.where(a_off[:,2] == 0)][:,-1] ]]
     datum = [[ a_on[c_on_indices][:,-1] , a_off[c_on_indices][:,-1]  ] ,
              [ a_on[c_off_indices][:,-1], a_off[c_off_indices][:,-1] ] ]
-
-    #print(datum)
-    test_anova(test_data,2)
+    datum = np.array(datum)
+    
+    test_anova(test_data)
     return 0;
 
     singleWay_anova(test_data)
