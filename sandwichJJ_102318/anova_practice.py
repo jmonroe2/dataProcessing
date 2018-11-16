@@ -173,7 +173,7 @@ def test_anova(data):
     ## 2-factor data is structured as matrix in dim1 x dim2, but repetitions
     ##  are included in rows
     """ For 2 factors with 2 repetitions
-        x1       x2
+        x1       x2         x3
     y1  p1_list  p2_list    p3_list
     y2  p4_list  p5_list    p6_list
     """
@@ -183,39 +183,70 @@ def test_anova(data):
     averaged = np.mean(data,axis=2)
 
     m = np.sum(averaged*num_avg)**2/data.size ## grand sum of squares, mean?
+    mean_squares_dict = dict()
+    df_tot = 0
 
     ## do V-stats
+    '''
+    v_arranged = data.copy()
+    per_sample = data.size//num_treat0
+    v_arranged.shape = (num_treat0, per_sample)
+    print(np.sum(v_arranged,axis=1)**2 /per_sample )
+    return 0;
+    '''
+     
+    # we could sum over repeated trials, but instead replace with n*mean
     marginal = np.sum(averaged*num_avg,axis=1)
-    df = num_treat1*num_avg
+    df= num_treat1*num_avg 
+    df_tot +=df
     SS_v = np.sum(marginal**2)/df  -m
+    mean_squares_dict["d1"] = SS_v/(num_treat1-1)
     print("V:", SS_v)
     
     ## do E-stats
     marginal = np.sum(averaged*num_avg,axis=0)
-    df = num_treat0*num_avg
+    df = num_treat0*num_avg 
+    df_tot += df
     SS_e = np.sum(marginal**2)/df  -m
+    mean_squares_dict["d2"] = SS_e/(df-num_avg)
     print("E:", SS_e)
     
     ## do E*V stats
+    # first find variance for any group, then subtract individual
     flat = data.copy()
     flat.shape = (6,2)
-    marginal = np.sum(flat,axis=0)
-    diff = np.sum(marginal**2)/5 - np.sum(flat)**2/flat.size
-    print("ExV:", diff)
-    return 0;
+    
+    gp_mean = np.mean(flat,axis=1) ## average over columns
+    mm = np.mean(data)
+    diff =(gp_mean-mm)**2 *2
+    SS_gp = np.sum( 2*(gp_mean- mm)**2 )
+    print("SS_gp", SS_gp)
+    SS_ev = SS_gp - SS_e - SS_v
+    df = (num_treat0-1)*(num_treat1-1)
+    df_tot += df
+    mean_squares_dict["int"] = SS_ev/(df)
+    print("E*V:", SS_ev)
 
-    SS_int = 1
+    ## error (cf each point to it's group mean)
+    gp_mean = gp_mean # defined above
+    SS_err = 0
+    for i in np.arange(flat.shape[1]):
+        row = flat[:,i]
+        dist_from_gp = (row - gp_mean)**2
+        SS_err += np.sum(dist_from_gp)
+    df = (data.size-1) 
+    print("Err:", SS_err) 
+    mean_squares_dict["int"] = SS_ev/df
     
     ## total
     marg_tot = data-np.mean(data)
     SS_total = np.sum(marg_tot**2)
     print("total", SS_total)
-    
-    ## error
-    SS_err = SS_total - SS_v - SS_e - SS_int
-    df = (num_treat0-1)*(num_treat1-1)
-    ## now calculate tot = x + y + xy + err to get err to get F_i = MS_i/MS_err
-    
+    df = data.size-1
+    mean_squares_dict["tot"] = SS_total/df
+   
+    print(mean_squares_dict) 
+    return mean_squares_dict 
 ##END test_anova
     
     
