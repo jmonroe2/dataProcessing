@@ -106,16 +106,41 @@ def singleWay_anova(data):
     SS_sample = n_samples*np.sum(squares)
     df = n_tests-1
     MS_sample = SS_sample/df
-    print("sample", SS_sample, df)
+    #print("sample", SS_sample, df)
     
     squares = np.var(data,axis=0)*n_samples
     SS_err = n_tests*np.sum(squares)
     df = n_samples-1
     MS_err = SS_err/df
-    print("error", SS_err, df)
+    #print("error", SS_err, df)
     
     return MS_sample/MS_err
 ##END singleWay_anova
+
+
+def oneWay_anova(data):
+    ## calculate F-test by comparing Sum of Squares between group means
+    ##      and between data points
+    ## data: should be 2-D 
+    num_groups = data.shape[0]
+    num_repeats = data.shape[1]
+   
+    M = np.mean(data) 
+  
+    ## SS treatment: compare each group mean to global mean 
+    diff = np.mean(data,axis=1) - M
+    ss_treat = np.sum( diff**2 )
+    ms_treat = ss_treat/(num_groups-1)
+    print("treat:", ss_treat)
+
+    ## SS err: compare all points to global mean
+    ss_err = np.sum( (data-M)**2 )
+    ms_err = ss_err/( data.size-num_groups)
+    print("err:", ss_err)
+
+    return ms_treat/ms_err
+
+##END oneWay_anova    
     
 
 def textbook_anova(data):
@@ -148,10 +173,11 @@ def textbook_anova(data):
     
 
 def make_pareto_plot(data):
-    anova_dict = {}
-    
+    anova_results = []
+   
+    label_list = "ABCD" 
     for index in range(4):
-        label = "ABCD"[index]
+        label = label_list[index]
         on_slice = data[np.where(data[:,index]==1)]
         off_slice = data[np.where(data[:,index]==0)]
         
@@ -161,123 +187,115 @@ def make_pareto_plot(data):
         all_data[:,0] = off_data
         all_data[:,1] = on_data
         
-        result = singleWay_anova(all_data)
-        anova_dict[result] = label ## easier to sort keys than values
+        f_stat = singleWay_anova(all_data)
+        #anova_results.append( (label,f_stat) )
     ##END through single anova loop
     
     ## double anova double fun
-##END data
+    for i in range(4):
+        for j in range(i+1,4):
+            label = label_list[i] +'*'+ label_list[j] 
+            first_on = data[np.where(data[:,i] ==1)]
+            first_off = data[np.where(data[:,i] ==0)]
+            sec_on_indices = np.where(first_on[:,j] ==1)
+            sec_off_indices = np.where(first_on[:,j] ==0)
+            ## datum columns: a on, off, rows: c on, c off
+            datum = [[ first_on[sec_on_indices][:,-1] , first_off[sec_on_indices][:,-1]  ] ,
+                     [ first_on[sec_off_indices][:,-1], first_off[sec_off_indices][:,-1] ] ]
+            datum = np.array(datum)
+        
+            first, second, interact = twoWay_anova(datum)
+            anova_results.append( (label, interact) )
+            anova_results.append( (label_list[j], first) )
+    ##END two-way ANOVA loop
+
+    ## make plot
+    anova_results.sort(key=lambda x:x[1])
+    ordered_labels,ordered_vals = zip(*anova_results)
+    print(anova_results)
+
+    y_coords = np.arange(len(ordered_vals))
+    plt.barh(y_coords, ordered_vals)
+    plt.yticks(y_coords, ordered_labels)
+    
+##END make_pareto
+   
+
+def twoWay_anova(data):
+    '''
+    Two-way anova on 3 dimensional data:
+       expected data format: data[gp A index, gp B index, repetition ]
+    '''
+    ## two-way anova: assuming AxBxN matrix
+    n_a = data.shape[0]
+    n_b = data.shape[1]
+    n_repeats = data.shape[2] 
+
+    M = np.mean(data) ## global mean
+    avg_repeats = np.mean(data,axis=2)
+    
+    ## first factor
+    a_dist = np.mean(avg_repeats,axis=1) - M
+    ss_a = n_b*n_repeats*np.sum(a_dist**2)
+    ms_a = ss_a /(n_a-1) ## degrees of freedom via Bessel's correction
+
+    ## second factor
+    b_dist= np.mean(avg_repeats,axis=0) - M
+    ss_b = n_a*n_repeats*np.sum(b_dist**2)
+    ms_b = ss_b /(n_b-1) ## degrees of freedom via Bessel's correction
+
+    ## interaction
+    net_dist = np.apply_along_axis(lambda x: x-a_dist,axis=0, arr=avg_repeats)
+    net_dist = np.apply_along_axis(lambda x: x-b_dist,axis=1, arr=net_dist)
+    net_dist -= M
+    ss_ab= n_repeats *np.sum(net_dist**2)
+    ms_ab= ss_ab /(n_a-1) /(n_b-1)
+
+    ## error
+    all_dist = np.apply_along_axis(lambda x: x-np.mean(x),axis=2, arr=data)
+    
+    #all_dist = np.apply_along_axis(my_fun,axis=2, arr=data)
+    ss_err = np.sum(all_dist**2)
+    ms_err = ss_err /( n_a*n_b*(n_repeats-1))
+    
+    ## (check against total)
+    ss_tot= np.sum((data-M)**2 )
+    #print(ss_tot, '==', ss_a + ss_b + ss_ab + ss_err)
+   
+    ## convert to F-statistics 
+    return ms_a/ms_err, ms_b/ms_err, ms_ab/ms_err
+##END twoWay_anova
+
+
+def test_anova():
+    print("1-way")
+    data = np.array([[1.93, 2.38, 2.20, 2.25],
+                     [2.55, 2.72, 2.75, 2.7],
+                     [2.4, 2.68, 2.31, 2.28],
+                     [2.33, 2.4, 2.28, 2.25]])
+    print("F:", oneWay_anova(data))
+
+    textBook_data = np.array([[[48, 58], [28, 33], [7, 15]],
+                          [[62, 54], [14, 10], [9, 6]]])
+    a,b,ab = twoWay_anova(textBook_data)
+    print("2-way")
+    print("A:",a, "B:", b, "A*B:", ab)
+
+    textBook_data.shape = 2,2*3
+    f = singleWay_anova(textBook_data)
+    print(f)
+    
+##END test_anova 
    
  
-def test_anova(data):
-    ## 2-factor data is structured as matrix in dim1 x dim2, but repetitions
-    ##  are included in rows
-    """ For 2 factors with 2 repetitions
-        x1       x2         x3
-    y1  p1_list  p2_list    p3_list
-    y2  p4_list  p5_list    p6_list
-    """
-    num_treat0 = data.shape[0]
-    num_treat1 = data.shape[1]
-    num_avg = data.shape[2]
-    averaged = np.mean(data,axis=2)
-
-    m = np.sum(averaged*num_avg)**2/data.size ## grand sum of squares, mean?
-    mean_squares_dict = dict()
-    df_tot = 0
-
-    ## do V-stats
-    '''
-    v_arranged = data.copy()
-    per_sample = data.size//num_treat0
-    v_arranged.shape = (num_treat0, per_sample)
-    print(np.sum(v_arranged,axis=1)**2 /per_sample )
-    return 0;
-    '''
-     
-    # we could sum over repeated trials, but instead replace with n*mean
-    marginal = np.sum(averaged*num_avg,axis=1)
-    df= num_treat1*num_avg 
-    df_tot +=df
-    SS_v = np.sum(marginal**2)/df  -m
-    mean_squares_dict["d1"] = SS_v/(num_treat1-1)
-    print("V:", SS_v)
-    
-    ## do E-stats
-    marginal = np.sum(averaged*num_avg,axis=0)
-    df = num_treat0*num_avg 
-    df_tot += df
-    SS_e = np.sum(marginal**2)/df  -m
-    mean_squares_dict["d2"] = SS_e/(df-num_avg)
-    print("E:", SS_e)
-    
-    ## do E*V stats
-    # first find variance for any group, then subtract individual
-    flat = data.copy()
-    flat.shape = (6,2)
-    
-    gp_mean = np.mean(flat,axis=1) ## average over columns
-    mm = np.mean(data)
-    diff =(gp_mean-mm)**2 *2
-    SS_gp = np.sum( 2*(gp_mean- mm)**2 )
-    print("SS_gp", SS_gp)
-    SS_ev = SS_gp - SS_e - SS_v
-    df = (num_treat0-1)*(num_treat1-1)
-    df_tot += df
-    mean_squares_dict["int"] = SS_ev/(df)
-    print("E*V:", SS_ev)
-
-    ## error (cf each point to it's group mean)
-    gp_mean = gp_mean # defined above
-    SS_err = 0
-    for i in np.arange(flat.shape[1]):
-        row = flat[:,i]
-        dist_from_gp = (row - gp_mean)**2
-        SS_err += np.sum(dist_from_gp)
-    df = (data.size-1) 
-    print("Err:", SS_err) 
-    mean_squares_dict["int"] = SS_ev/df
-    
-    ## total
-    marg_tot = data-np.mean(data)
-    SS_total = np.sum(marg_tot**2)
-    print("total", SS_total)
-    df = data.size-1
-    mean_squares_dict["tot"] = SS_total/df
-   
-    print(mean_squares_dict) 
-    return mean_squares_dict 
-##END test_anova
-    
-    
 def main():
+    #test_anova()
+
     data = get_data()
-    
     #factor_plot(data)
     #correlation_plot(data)
-    
-    ## ANOVA
-    #make_pareto_plot(data)
-    ## from textbook
-    test_data = np.array([[[48, 58], [28, 33], [7, 15]],
-                          [[62, 54], [14, 10], [9, 6]]])
+    make_pareto_plot(data)
 
-    a_on = data[np.where(data[:,0] ==1)]
-    a_off = data[np.where(data[:,0] ==0)]
-    c_on_indices = np.where(a_on[:,2] ==1)
-    c_off_indices = np.where(a_on[:,2] ==0)
-    ## datum columns: a on, off, rows: c on, c off
-    #datum = [[ a_on[np.where(a_on[:,2] == 1)][:,-1],  a_on[np.where(a_on[:,2] == 0)][:,-1] ],
-    #         [ a_off[np.where(a_off[:,2] == 1)][:,-1],  a_off[np.where(a_off[:,2] == 0)][:,-1] ]]
-    datum = [[ a_on[c_on_indices][:,-1] , a_off[c_on_indices][:,-1]  ] ,
-             [ a_on[c_off_indices][:,-1], a_off[c_off_indices][:,-1] ] ]
-    datum = np.array(datum)
-    
-    test_anova(test_data)
-    return 0;
-
-    singleWay_anova(test_data)
-    singleWay_anova(all_data)
     plt.show()
 ##END main
    
