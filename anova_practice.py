@@ -57,12 +57,17 @@ def correlation_plot(data):
     index_list = "ABCD"
     num_indices = len(index_list)
     
+    fig, ax_array = plt.subplots(3,3)
+    unused_plot_indices = list(range(1,9+1))
+
     for primary_index in range(num_indices):
         for condition_index in range(primary_index+1,num_indices):
-            print(primary_index, condition_index)
+            plot_index = (primary_index + 3*(condition_index-1)) % 9 +1
+            axes = plt.subplot(3,3,plot_index)
+            unused_plot_indices.remove(plot_index)
+            
             subset_on = data[ np.where(data[:,condition_index]==1) ]
             subset_off = data[ np.where(data[:,condition_index]==0) ]
-            plt.clf()
             for i,subset in enumerate([subset_on,subset_off]):
                 c = 'rb'[i]
                 m = '*x'[i]
@@ -75,101 +80,29 @@ def correlation_plot(data):
                 
                 xs = [0,1]
                 ys = [np.mean(off_data), np.mean(on_data)]
-                plt.plot(xs,ys, color=c, marker=m, label=label)
+                axes.plot(xs,ys, color=c, marker=m, label=label)
                 
                 ## fit a line!
                 slope,offset = np.polyfit(xs,ys,1)
-                print("{0}|{1} {2}".format(index_list[primary_index],
-                      index_list[condition_index], on_off),
-                        slope)
+                #@@print("{0}|{1} {2}".format(index_list[primary_index],
+                     #index_list[condition_index], on_off),
+                     #   slope)
                 
+                axes.set_xlabel(index_list[primary_index]+" state")
             ## END loop through on-off plot making
-            plt.legend(loc=2)
-            plt.xlabel(index_list[primary_index]+" state")
-            plt.ylabel("Filtration Rate")
+            axes.legend(loc=2,fontsize=8)
+            axes.set_ylim(40,100)
+            if primary_index==0:axes.set_ylabel("Filtration Rate")
+        ##END loop of conditional values
     ##END loop through subsets
-    plt.ylim(40,100)
+    
+    ## clear the unused figures
+    for i in unused_plot_indices:
+        axes = plt.subplot(3,3,i)
+        axes.set_axis_off()
 ##END correlation_plot
 
 
-def singleWay_anova(data):
-    ## calculate F for each trace of data by comparing mean square (MS) of 
-    ##   the categories to the MS of the cross-group data.
-    
-    ##begin ANOVA
-    m = np.mean(data)
-    m = 0 ## don't subtract mean according to textbook
-    n_samples = data.shape[0]
-    n_tests = data.shape[1]
-    
-    squares = (np.mean(data,axis=0) -m)**2
-    SS_sample = n_samples*np.sum(squares)
-    df = n_tests-1
-    MS_sample = SS_sample/df
-    #print("sample", SS_sample, df)
-    
-    squares = np.var(data,axis=0)*n_samples
-    SS_err = n_tests*np.sum(squares)
-    df = n_samples-1
-    MS_err = SS_err/df
-    #print("error", SS_err, df)
-    
-    return MS_sample/MS_err
-##END singleWay_anova
-
-
-def oneWay_anova(data):
-    ## calculate F-test by comparing Sum of Squares between group means
-    ##      and between data points
-    ## data: should be 2-D 
-    num_groups = data.shape[0]
-    num_repeats = data.shape[1]
-   
-    M = np.mean(data) 
-  
-    ## SS treatment: compare each group mean to global mean 
-    diff = np.mean(data,axis=1) - M
-    ss_treat = np.sum( diff**2 )
-    ms_treat = ss_treat/(num_groups-1)
-    print("treat:", ss_treat)
-
-    ## SS err: compare all points to global mean
-    ss_err = np.sum( (data-M)**2 )
-    ms_err = ss_err/( data.size-num_groups)
-    print("err:", ss_err)
-
-    return ms_treat/ms_err
-
-##END oneWay_anova    
-    
-
-def textbook_anova(data):
-    ## calculate F for each trace of data by comparing mean square (MS) of 
-    ##   the categories to the MS of the cross-group data.
-    print("TBA")
-    n_samples = data.shape[0]
-    n_tests = data.shape[1]
-    
-    tot = np.sum(data)
-    marginal = np.sum(data,axis=0)
-    SS_treatments = sum(marginal**2)/n_samples - tot**2/data.size
-    df = n_tests-1
-    MS_treatments = SS_treatments/df
-    print(SS_treatments, df)
-   
-    ## SS error is whatever isn't accounted for with treatment: SS_tot - SS_treat
-    m = np.mean(data)
-    SS_tot = np.sum( (data-m)**2 )
-    SS_tot = (data.size-1)*np.var(data)  
-    SS_err = SS_tot - SS_treatments
-    df = data.size-n_samples
-
-    MS_err = SS_err/df
-
-    print("error", SS_err, df)
-    
-    return MS_treatments/MS_err
-##END textBook_anova
     
 
 def make_pareto_plot(data):
@@ -187,8 +120,8 @@ def make_pareto_plot(data):
         all_data[:,0] = off_data
         all_data[:,1] = on_data
         
-        f_stat = singleWay_anova(all_data)
-        #anova_results.append( (label,f_stat) )
+        f_stat = oneWay_anova(all_data)
+        anova_results.append( (label,f_stat) )
     ##END through single anova loop
     
     ## double anova double fun
@@ -203,16 +136,18 @@ def make_pareto_plot(data):
             datum = [[ first_on[sec_on_indices][:,-1] , first_off[sec_on_indices][:,-1]  ] ,
                      [ first_on[sec_off_indices][:,-1], first_off[sec_off_indices][:,-1] ] ]
             datum = np.array(datum)
-        
             first, second, interact = twoWay_anova(datum)
             anova_results.append( (label, interact) )
-            anova_results.append( (label_list[j], first) )
     ##END two-way ANOVA loop
 
     ## make plot
+    plt.figure()
+    print("Anova")
+    print(anova_results)
     anova_results.sort(key=lambda x:x[1])
     ordered_labels,ordered_vals = zip(*anova_results)
-    print(anova_results)
+    print(ordered_labels)
+    print(ordered_vals)
 
     y_coords = np.arange(len(ordered_vals))
     plt.barh(y_coords, ordered_vals)
@@ -220,6 +155,34 @@ def make_pareto_plot(data):
     
 ##END make_pareto
    
+
+def oneWay_anova(data):
+    ## calculate F-test by comparing Sum of Squares between group means
+    ##      and between data points
+    ## data: should be 2-D 
+    num_groups = data.shape[0]
+    num_repeats = data.shape[1]
+   
+    M = np.mean(data) 
+  
+    ## SS treatment: compare each group mean to global mean 
+    diff = np.mean(data,axis=1) - M
+    ss_treat = num_repeats*np.sum( diff**2 )
+    ms_treat = ss_treat/(num_groups-1)
+
+    ## SS err: compare all points to global mean
+    all_dist = np.apply_along_axis(lambda x: x-np.mean(x),axis=1, arr=data)
+    ss_err = np.sum( all_dist**2)
+    ms_err = ss_err/( data.size-num_groups)
+
+    #ss_tot = np.sum( (data-M)**2 )
+    print(ms_treat, ms_err)
+    print(data)
+    print(np.sum(data,axis=1))
+    print(np.var(data,axis=1))
+    return ms_treat/ms_err
+##END oneWay_anova    
+
 
 def twoWay_anova(data):
     '''
@@ -273,6 +236,7 @@ def test_anova():
                      [2.55, 2.72, 2.75, 2.7],
                      [2.4, 2.68, 2.31, 2.28],
                      [2.33, 2.4, 2.28, 2.25]])
+    #data = data.T
     print("F:", oneWay_anova(data))
 
     textBook_data = np.array([[[48, 58], [28, 33], [7, 15]],
@@ -281,8 +245,6 @@ def test_anova():
     print("2-way")
     print("A:",a, "B:", b, "A*B:", ab)
 
-    textBook_data.shape = 2,2*3
-    f = singleWay_anova(textBook_data)
     print(f)
     
 ##END test_anova 
@@ -293,7 +255,7 @@ def main():
 
     data = get_data()
     #factor_plot(data)
-    #correlation_plot(data)
+    correlation_plot(data)
     make_pareto_plot(data)
 
     plt.show()
