@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-def get_data():
+def get_test_data():
     ## copying data from wiki/Factorial_experiment#Analysis
     data_array = [45,71,48,65,68,60,80,65,43,100,45,104,75,86,70,96]
     full_data  = []
@@ -28,42 +28,43 @@ def get_data():
 ##END get_data
 
 
-def factor_plot(data):
+def factor_plot(data,label_list="ABCD"):
     ## separates data for each factor (column) and plots '+' case and '-' case
-    
     fig, ax_matrix = plt.subplots(2,2)
-    #ax_list = ax_matrix.flatten()
-    for i in range(data.shape[0]-1): ## all index columns, less data column
-        label = "ABCD"[i]
-        print(i); continue
+    #x_list = ax_matrix.flatten()
+    for i in range(data.shape[1]-1): ## all index columns, less data column
+        label = label_list[i]
         on_index = np.where(data[:,i]==1)
         off_index = np.where(data[:,i]==0)
         on_data = data[on_index, -1]
         off_data = data[off_index, -1]
+        print(label,on_data)
+        print('\t',off_data)
         
         plt.plot( np.zeros(len(off_data)), off_data, 'ok')
         plt.plot( np.ones(len(on_data)), on_data, 'ok')
         plt.xlabel(label+" status")
-        plt.ylabel("Flow rate")
+        plt.ylabel("Outcome")
 ##END factor_plot
 
 
-def correlation_plot(data):
+def correlation_plot(data,label_list="ABCD",y_label="Outcome"):
     '''
     For each interaction, find how a primary variable changes conditioned on a secondary
     variable is on or off.
     '''
     
-    index_list = "ABCD"
-    num_indices = len(index_list)
+    num_indices = len(label_list)
+    n = 3 ## should be num_indices-1 (indexing) but that fails for n=2
+    n2 = n**2
     
-    fig, ax_array = plt.subplots(3,3)
-    unused_plot_indices = list(range(1,9+1))
+    fig, ax_array = plt.subplots(n,n)
+    unused_plot_indices = list(range(1,n2+1))
 
     for primary_index in range(num_indices):
         for condition_index in range(primary_index+1,num_indices):
-            plot_index = (primary_index + 3*(condition_index-1)) % 9 +1
-            axes = plt.subplot(3,3,plot_index)
+            plot_index = (primary_index + n*(condition_index-1)) % n2 +1
+            axes = plt.subplot(n,n,plot_index)
             unused_plot_indices.remove(plot_index)
             
             subset_on = data[ np.where(data[:,condition_index]==1) ]
@@ -72,7 +73,7 @@ def correlation_plot(data):
                 c = 'rb'[i]
                 m = '*x'[i]
                 on_off = ["ON", "OFF"][i]
-                label = index_list[condition_index]+ ' '+ on_off
+                label = label_list[condition_index]+ ' '+ on_off
                 off_slice = subset[np.where( subset[: ,primary_index] ==0) ]
                 on_slice  = subset[np.where( subset[: ,primary_index] ==1) ]
                 off_data = off_slice[:,-1]
@@ -80,22 +81,30 @@ def correlation_plot(data):
                 
                 xs = [0,1]
                 ys = [np.mean(off_data), np.mean(on_data)]
-                axes.plot(xs,ys, color=c, marker=m, label=label)
+                std = [np.std(off_data), np.std(on_data)]
+                axes.errorbar(xs,ys, color=c, marker=m, label=label,yerr=std)
                 
                 ## fit a line!
-                slope,offset = np.polyfit(xs,ys,1)
+                #slope,offset = np.polyfit(xs,ys,1)
                 #@@print("{0}|{1} {2}".format(index_list[primary_index],
                      #index_list[condition_index], on_off),
                      #   slope)
-                
-                axes.set_xlabel(index_list[primary_index]+" state")
+                axes.set_xlabel(label_list[primary_index]+" state")
             ## END loop through on-off plot making
             axes.legend(loc=2,fontsize=8)
-            axes.set_ylim(40,100)
-            if primary_index==0:axes.set_ylabel("Filtration Rate")
+            axes.set_xticks([0,1])
+            #axes.set_ylim(40,100)
+            if primary_index==0:axes.set_ylabel(y_label)
         ##END loop of conditional values
     ##END loop through subsets
     
+    ## some nice formatting
+    y_max, y_min = -np.inf, np.inf
+    for ax in ax_array.flat:
+            y_max = max(ax.get_ylim())
+            y_min = min(ax.get_ylim())
+    for ax in ax_array.flat:
+            ax.set_ylim((y_min,y_max))
     ## clear the unused figures
     for i in unused_plot_indices:
         axes = plt.subplot(3,3,i)
@@ -103,13 +112,11 @@ def correlation_plot(data):
 ##END correlation_plot
 
 
-    
-
-def make_pareto_plot(data):
+def make_pareto_plot(data,label_list="ABCD"):
     anova_results = []
+    num_trials = 4
    
-    label_list = "ABCD" 
-    for index in range(4):
+    for index in range(num_trials ):
         label = label_list[index]
         on_slice = data[np.where(data[:,index]==1)]
         off_slice = data[np.where(data[:,index]==0)]
@@ -125,8 +132,8 @@ def make_pareto_plot(data):
     ##END through single anova loop
     
     ## double anova double fun
-    for i in range(4):
-        for j in range(i+1,4):
+    for i in range(num_trials ):
+        for j in range(i+1,num_trials ):
             label = label_list[i] +'*'+ label_list[j] 
             first_on = data[np.where(data[:,i] ==1)]
             first_off = data[np.where(data[:,i] ==0)]
@@ -152,11 +159,10 @@ def make_pareto_plot(data):
     y_coords = np.arange(len(ordered_vals))
     plt.barh(y_coords, ordered_vals)
     plt.yticks(y_coords, ordered_labels)
-    
 ##END make_pareto
    
 
-def oneWay_anova(data):
+def oneWay_anova(data,verbose=False):
     ## calculate F-test by comparing Sum of Squares between group means
     ##      and between data points
     ## data: should be 2-D 
@@ -176,10 +182,11 @@ def oneWay_anova(data):
     ms_err = ss_err/( data.size-num_groups)
 
     #ss_tot = np.sum( (data-M)**2 )
-    print(ms_treat, ms_err)
-    print(data)
-    print(np.sum(data,axis=1))
-    print(np.var(data,axis=1))
+    if verbose:
+        print(ms_treat, ms_err)
+        print(data)
+        print(np.sum(data,axis=1))
+        print(np.var(data,axis=1))
     return ms_treat/ms_err
 ##END oneWay_anova    
 
@@ -211,7 +218,7 @@ def twoWay_anova(data):
     net_dist = np.apply_along_axis(lambda x: x-a_dist,axis=0, arr=avg_repeats)
     net_dist = np.apply_along_axis(lambda x: x-b_dist,axis=1, arr=net_dist)
     net_dist -= M
-    ss_ab= n_repeats *np.sum(net_dist**2)
+    ss_ab= n_repeats *np.sum(c**2)
     ms_ab= ss_ab /(n_a-1) /(n_b-1)
 
     ## error
@@ -253,10 +260,9 @@ def test_anova():
 def main():
     #test_anova()
 
-    data = get_data()
-    #factor_plot(data)
+    data = get_test_data()
     correlation_plot(data)
-    make_pareto_plot(data)
+    #make_pareto_plot(data)
 
     plt.show()
 ##END main

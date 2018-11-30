@@ -4,12 +4,14 @@ Created on Sun Oct 21 08:21:24 2018
 
 @author: jonathan
 """
-
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import re
 from probing_util import voltage_to_resistance_critCurr, parse_input
+sys.path.append("..")
+import anova_util as anova
 
     
 def return_singleJJ_allCol(res):
@@ -55,12 +57,12 @@ def prepare_data():
     ''' recall 5 dimensions
     1. angle of evaporation
     2. extra oxide
-    3. column position
+    3. ---column-position----
     4. exposure parameters
     5. num JJ (average over)
     '''
-    # array_structure:
-    # angle flag, quarter flag, exposure flag, data_list
+    ## array_structure:
+    ## angle flag, extra oxide flag, quarter flag, data_list
     ## based on code_name_list I can preprogram these values:
     full_array =          [[0, 0, 0, 9],
                            [0, 1, 0, 9],
@@ -97,7 +99,7 @@ def prepare_data():
         res, current = voltage_to_resistance_critCurr(voltage_list,bias_r=1E6)
         
         ## do specific analysis
-        measurement_list = return_singleJJ_allCol(res)
+        measurement_list = return_singleJJ_allCol(res/1E3)
         full_array[i][-1] = measurement_list
     ##END loop through files
     return full_array
@@ -106,6 +108,16 @@ def prepare_data():
     
 def main():
     data = prepare_data()
+    
+    ## convert to average
+    for i in range(len(data)):
+        final_list = data[i][-1]
+        data[i][-1] = np.nanmean(final_list)
+    averaged = np.array(data)
+
+    label_list = ["Angle", "$O_2$","Expose"]
+    anova.correlation_plot( averaged,label_list, y_label="kOhms" )
+    plt.show()
 ##END main()
     
     
