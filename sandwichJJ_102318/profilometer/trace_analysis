@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Dec  4 15:19:51 2018
+
+@author: Fabusers
+
+This script exists to 
+"""
+import sys, time, os
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def some_Fun():
+	'''
+	DESCRIPTION: 
+	INPUT:
+	OUTPUT:
+	TODO:
+	'''
+	pass
+##END 
+
+
+def main():
+    data_dir = "C:\Users\Fabusers\Documents\cleanRoomData\120418_sandwhich_profilometry\120518_sandwichJJ"
+    os.listdir(data_file)
+    
+    file_name = 'trace7c.dat'
+    
+    
+##END main
+    
+
+if __name__ == '__main__':
+    main()
+
