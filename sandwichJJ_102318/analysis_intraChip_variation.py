@@ -41,7 +41,7 @@ def get_singleJunc_devices(device_block):
 ##END get_singleJunc_devices
 
 
-def plot_chip_variation():
+def plot_chip_variation(plot_var=True):
     ## load data
     dataFile_list = []
     base_name = "sandwichJJ_102318"
@@ -59,7 +59,7 @@ def plot_chip_variation():
         # setup formating
         data_color = color_list[i%4]
         codename = codename_list[i%4]
-        mark_forQuarter = ['*','x'][(i//4)%2]  # Q3 and Q4 respectively
+        mark_forQuarter = ['*','o'][(i//4)%2]  # Q3 and Q4 respectively
         if mark_forQuarter == '*': continue # skip Q3 for now, too high variance from opens
         
         ## based on chip number, is exterior the first or last column?
@@ -93,10 +93,18 @@ def plot_chip_variation():
             singleJJ_res /= 1E3 
             avg = np.nanmean(singleJJ_res)
             var = np.nanvar(singleJJ_res)
-            plt.plot(i,var,marker=mark_forQuarter,ms=9,color=data_color)
+            if plot_var:
+                plt.plot(i,var,marker=mark_forQuarter,ms=9,color=data_color)
+            else:
+                for res in singleJJ_res:
+                    plt.plot(i,res,marker=mark_forQuarter,ms=5,color=data_color)
             
         plt.xlabel("Radial position [from center]")
-        plt.ylabel("Variance in Res. of Single SQuID [kOhms^2]")
+        if plot_var:
+            plt.ylabel("Variance in Res. of Single SQuID [kOhms^2]")
+        else:
+            plt.ylabel("Res. of Single SQuID [kOhms]")
+        plt.xticks(np.arange(i+1,dtype='int'))
     ##END loop through data files
     
     ## make a custom legend
