@@ -115,7 +115,7 @@ def main():
         data[i][-1] = np.nanmean(final_list)
     averaged = np.array(data)
 
-    label_list = ["Angle", "$O_2$","Expose"]
+    label_list = ["Angle", "$AlO_x$","Expose"]
     anova.correlation_plot( averaged,label_list, y_label="kOhms" )
     plt.show()
 ##END main()
