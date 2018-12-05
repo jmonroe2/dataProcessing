@@ -103,8 +103,8 @@ def main():
     data_dir = r"C:\Users\Fabusers\Documents\cleanRoomData\120418_sandwhich_profilometry\120518_sandwichJJ"
     
     #plot_all(data_dir)
-    #plot_stack(data_dir)
-    #plot_vert_variation(data_dir)
+    plot_stack(data_dir)
+    plot_vert_variation(data_dir)
     plot_hor_variation(data_dir)
 ##END main
     
