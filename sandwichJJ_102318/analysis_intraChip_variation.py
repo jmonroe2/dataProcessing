@@ -60,6 +60,10 @@ def plot_chip_variation(plot_var=True):
         data_color = color_list[i%4]
         codename = codename_list[i%4]
         mark_forQuarter = ['*','o'][(i//4)%2]  # Q3 and Q4 respectively
+        # for PBJ, BLT, SUB, LOAF
+        evap_angle = [30/180*np.pi, 30/180*np.pi, 45/180*np.pi, 45/180*np.pi][i%4]
+        thickness = [1E-9, 1.5E-9, 1.5E-9, 1E-9][i%4]
+        hatch = ['//', '\\', 'x', '|'][i%4]
         if mark_forQuarter == '*': continue # skip Q3 for now, too high variance from opens
         
         ## based on chip number, is exterior the first or last column?
@@ -105,6 +109,7 @@ def plot_chip_variation(plot_var=True):
         else:
             plt.ylabel("Res. of Single SQuID [kOhms]")
         plt.xticks(np.arange(i+1,dtype='int'))
+        add_bands(np.mean(res), evap_angle, thickness, data_color, hatch=hatch)
     ##END loop through data files
     
     ## make a custom legend
@@ -119,11 +124,40 @@ def plot_chip_variation(plot_var=True):
     for i,label in enumerate(label_list):
         c = color_list[i%4]
         plt.text(x_pos,y_pos-i*gap,label, color=c,bbox=box_outline, transform=ax.transAxes)  
+        
 ##END plot_chip_variation
+        
+        
+def add_bands(mean_resistance,angle=np.pi/6, t=1E-9,color='k',hatch=None):
+    '''
+    DESCR: Calculates the expected variance band given a thickness variation of delta_h
+    INPUT:
+        angle   evaporation angle
+        t       AlOx thickness units: meters
+    OUTPUT: adds to foremost plot
+    '''
+    delta_h = 30E-9
+    tan = np.tan(angle)
+    h = 1E-6 ## resist height units: meters
+    l = 1E-6 ## bridge length units: meters
+    rho = 3.56E5 ## resistivity units: Ohm.meters; from Azam 2015
+    rho /= 10
+    error_band_width = rho*t*2*tan/ (2*h*tan-l)**2 *delta_h
+    #error_band_width /= 10
+    #error_band_width = 2*tan/(2*h*tan-l) *delta_h
+    ## technically the above should be negative. Should it be squared instead?
+    
+    xs = np.arange(5)
+    res_list = mean_resistance*np.ones(5)
+    plt.fill_between(xs, res_list+error_band_width, res_list-error_band_width, \
+                     hatch=hatch,color=color, alpha=0.2)
+##END add_band
 
 
 def main():
-    plot_chip_variation()
+    #plot_chip_variation()
+    plot_chip_variation(plot_var=False) ## plot mean
+    add_bands(20)
     
 ##END main
     
