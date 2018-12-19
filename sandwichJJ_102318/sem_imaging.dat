@@ -1,0 +1,6 @@
+# Rows are chip region
+# columns are device numbers
+65 x 95, 72 x 96, 63 x 95
+65 x 86, 73 x 94, 70 x 92
+72 x 94, 72 x 93, 78 x 93
+40 x 68, 34 x 56, 32 x 52

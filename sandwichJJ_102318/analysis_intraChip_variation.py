@@ -77,7 +77,7 @@ def plot_chip_variation(plot_var=True):
             read = open_file.readlines()
             open_file.close()
     
-        ## use regular expressions to extract 2 numbers (ints)
+        ## use regular expressions to extract 2 numbers 
         re_template = "((\d+\.?\d*)\suV)" # decimal number, then space then 'uV'
         num_blocks = 5
         voltage_list = parse_input(read, re_template, num_blocks=num_blocks,num_cols=4)
