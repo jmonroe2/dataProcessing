@@ -15,7 +15,8 @@ from scipy import optimize
 
 
 def main():
-    data = np.loadtxt("T1_fluxSweep_-7,4mA_2PartSeq_ampSweep_25usT1_20times_v1/bar_0")
+    data_dir = "C:/Users/jonathan/Downloads"
+    data = np.loadtxt(data_dir+"/T1_fluxSweep_-7,4mA_2PartSeq_ampSweep_25usT1_20times_v1/bar_0")
     num_fluxes = data.shape[0]
     fluxes = np.linspace(-7,4, num_fluxes)
     print(data.shape)
@@ -41,6 +42,11 @@ def main():
             std_err = np.sqrt(covariance[1,1])
             ax_fluxTuned.errorbar(fluxes[i], 1/param[1], yerr=std_err/param[1]**2)
     ax_fluxTuned.set_ylim(0,15)
+    
+    ax_fluxTuned.set_xlabel("Flux bias [mA]")
+    ax_fluxTuned.set_ylabel("1/$\Gamma$ [us]")
+    ax_fluxTuned.plot(fluxes,25*np.ones(len(fluxes)), 'k--')
+    ax_fluxTuned.annotate("Seq. Length", (0,25))
     plt.show()
         
 ##END main
