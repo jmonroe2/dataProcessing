@@ -137,14 +137,14 @@ def fourier_analysis(fluxes, gamma_vs_flux_longRepeats):
     num_repeats = gammaFlux.shape[1]
     target_flux_index = 10
     time_between_flux_repeats = 1.7*60 ## units: minutes
-    time_between_seq_repeats = 0.23 ## units: minutes
+    time_between_seq_repeats = 1.7*60/44/10
 
     fig, axes = plt.subplots()
-    max_time = (len(gamma_vs_flux_longRepeats)+1)*time_between_flux_repeats
+    max_time = len(gamma_vs_flux_longRepeats)*time_between_flux_repeats
     ts = np.arange(0, max_time, time_between_seq_repeats)
     for long_time_index, gamma_flux in enumerate(gamma_vs_flux_longRepeats):
         gamma_repeat = gamma_flux[target_flux_index]
-        time_window = ts[0:10]
+        start_time =     
         plt.plot(time_window, gamma_repeat)
     
     #plt.imshow(gamma_vs_flux_longRepeats[0], vmax=0.7, extent=[1,num_repeats,min(fluxes),max(fluxes)])
