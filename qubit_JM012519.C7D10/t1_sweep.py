@@ -77,7 +77,7 @@ def plot_t1_vs_flux(file_path,axis=None, fluxes=None,num_seq_steps=0,num_measure
 
     axis.set_ylim(0,20)
     axis.set_xlabel("Flux bias [mA]")
-    axis.set_ylabel("1/$\Gamma$ [us]")
+    axis.set_ylabel("$T_1$ [us]")
     axis.plot(fluxes,25*np.ones(len(fluxes)), 'k--')
     axis.annotate("Seq. Length", (0,25))
 ##END plot_t1_vs_flux    
