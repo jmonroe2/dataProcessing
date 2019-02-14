@@ -13,38 +13,49 @@ import matplotlib.pyplot as plt
 import scipy
 from scipy import optimize
 
-
-def main():
+def get_data(verbose):
     #data_dir = "C:/Users/jonathan/Downloads"
     data_dir = "/Users/jmonroe/Projects/fabrication/dataProcessing/qubits/qubit_JM012519.C7D10/data"
 
     ## load data
     # -12 to -2 mA bias sweep
-    '''
+    #'''
     data_dir += "/T1_fluxSweep_-12,-2_ampSweep_0,1_t1_25us_v2"
     flux_min, flux_max = -12,-2
     num_fluxes = 41
     num_files= 14
-    num_measurements = 10
     '''
     # -2.5 to +4 mA bias sweep
     data_dir += "/T1_fluxSweep_-2.5,4mA_amp_0,1_25us_t1"
     flux_min, flux_max = -2.5,4
     num_fluxes = 66
     num_files = 17
-    num_measurements = 10 ## comment this 
     #'''
 
     num_seq_steps = 202
     t1_time = 25
     fluxes = np.linspace(flux_min, flux_max, num_fluxes) 
+    gamma_longRepeats= []
+    gammaErr_longRepeats= []
     
-    fig, flux_axis = plt.subplots()
-    fig, time_axis = plt.subplots()
     for index in np.arange(num_files):
         file_name = f"/bar_{1000*index}"
-        gamma, gammaErr = fit_gamma_repeatedSequence(data_dir+file_name, num_seq_steps, t1_time)
+        ## get table of (repeated) gamma vs (single) flux
+        gamma, gammaErr = fit_gamma_repeatedSequence(data_dir+file_name, num_seq_steps, t1_time, verbose=verbose)
+        gamma_longRepeats.append(gamma)
+        gammaErr_longRepeats.append(gammaErr)
 
+    return fluxes, gamma_longRepeats, gammaErr_longRepeats
+##END get_data
+
+ 
+def make_plot_of_averages(fluxes,gamma_list):
+    fig, flux_axis = plt.subplots()
+    fig, time_axis = plt.subplots()
+    
+    num_measurements = gamma_list[0].shape[1]
+
+    for index,gamma in enumerate(gamma_list):
         ## statistics
         avg_gamma = np.mean(gamma,axis=1)
         avg_t1 = 1./avg_gamma
@@ -53,10 +64,8 @@ def main():
     
         ## add to plot
         flux_axis.errorbar(fluxes, avg_t1, yerr=t1_std,fmt='o')
-        print
-        time_axis.errorbar(index*1.5, avg_gamma[10], yerr=t1_std, fmt='o')
-        if index==2: break
-
+        flux_index = 8
+        time_axis.errorbar(index*1.5, avg_t1[flux_index], yerr=t1_std[flux_index], fmt='o')
 
     ## plot formatting
     flux_axis.set_ylim(0,30)
@@ -68,11 +77,12 @@ def main():
     time_axis.set_ylim(0,30)
     time_axis.set_xlabel("Sample time [hours]")
     time_axis.set_ylabel("$T_1 [\mu s]$")
+    time_axis.set_title(f"$T_1$ @ {fluxes[flux_index]} mA")
     plt.show()
-##END main
+##END make_plot_of_averages
         
     
-def fit_gamma_repeatedSequence(file_path, num_seq_steps=101, t1_time=0):
+def fit_gamma_repeatedSequence(file_path, num_seq_steps=101, t1_time=0,verbose=True):
     '''
     DESC: extracts T1 portion of repeated sweeps
     INPUT:
@@ -109,7 +119,7 @@ def fit_gamma_repeatedSequence(file_path, num_seq_steps=101, t1_time=0):
                 gamma = fit_param[1] 
                 gamma_stdErr = np.sqrt(covariance[1,1])
             except RuntimeError:
-                print(f"Bad fit @flux #{i+1}, fit #{j+1}")
+                if verbose: print(f"Bad fit @flux #{i+1}, fit #{j+1}")
                 gamma = np.nan
                 gamma_stdErr = np.nan
 
@@ -117,7 +127,38 @@ def fit_gamma_repeatedSequence(file_path, num_seq_steps=101, t1_time=0):
             gamma_array[i,j] = gamma
             gammaErr_array[i,j] = gamma_stdErr
     return gamma_array, gammaErr_array
-##END plot_t1_vs_flux    
+##END fit_gamma_repeatedSequences
+
+
+def fourier_analysis(fluxes, gamma_vs_flux_longRepeats):
+    gammaFlux = gamma_vs_flux_longRepeats[0]
+
+    num_fluxes = gammaFlux.shape[0]
+    num_repeats = gammaFlux.shape[1]
+    target_flux_index = 10
+    time_between_flux_repeats = 1.7*60 ## units: minutes
+    time_between_seq_repeats = 0.23 ## units: minutes
+
+    fig, axes = plt.subplots()
+    max_time = (len(gamma_vs_flux_longRepeats)+1)*time_between_flux_repeats
+    ts = np.arange(0, max_time, time_between_seq_repeats)
+    for long_time_index, gamma_flux in enumerate(gamma_vs_flux_longRepeats):
+        gamma_repeat = gamma_flux[target_flux_index]
+        time_window = ts[0:10]
+        plt.plot(time_window, gamma_repeat)
+    
+    #plt.imshow(gamma_vs_flux_longRepeats[0], vmax=0.7, extent=[1,num_repeats,min(fluxes),max(fluxes)])
+    axes.set_title(f"Rate at {fluxes[target_flux_index]}")
+    plt.show()
+
+##END fourier_analysis
+
+
+def main():
+    fluxes, gamma_longRepeats, gammaErr_longRepeats = get_data(False)
+    #make_plot_of_averages(fluxes, gamma_longRepeats)
+    fourier_analysis(fluxes, gamma_longRepeats)
+##END main
     
     
 if __name__ == '__main__':
