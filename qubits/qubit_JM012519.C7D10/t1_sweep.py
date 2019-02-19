@@ -14,8 +14,8 @@ import scipy
 from scipy import optimize
 
 def get_data(verbose):
-    #data_dir = "C:/Users/jonathan/Downloads"
-    data_dir = "/Users/jmonroe/Projects/fabrication/dataProcessing/qubits/qubit_JM012519.C7D10/data"
+    data_dir = "C:/Users/jonathan/Downloads"
+    #data_dir = "/Users/jmonroe/Projects/fabrication/dataProcessing/qubits/qubit_JM012519.C7D10/data"
 
     ## load data
     # -12 to -2 mA bias sweep
@@ -131,24 +131,26 @@ def fit_gamma_repeatedSequence(file_path, num_seq_steps=101, t1_time=0,verbose=T
 
 
 def fourier_analysis(fluxes, gamma_vs_flux_longRepeats):
-    gammaFlux = gamma_vs_flux_longRepeats[0]
 
-    num_fluxes = gammaFlux.shape[0]
-    num_repeats = gammaFlux.shape[1]
-    target_flux_index = 10
-    time_between_flux_repeats = 1.7*60 ## units: minutes
-    time_between_seq_repeats = 1.7*60/44/10
+    num_fluxes = gamma_vs_flux_longRepeats[0].shape[0]
+    num_sweep_repeats = gamma_vs_flux_longRepeats[0].shape[1]
+    time_between_flux_repeats = 1.7 ## units: hours
+    time_between_seq_repeats = 1.7/44/10
 
-    fig, axes = plt.subplots()
-    max_time = len(gamma_vs_flux_longRepeats)*time_between_flux_repeats
-    ts = np.arange(0, max_time, time_between_seq_repeats)
-    for long_time_index, gamma_flux in enumerate(gamma_vs_flux_longRepeats):
-        gamma_repeat = gamma_flux[target_flux_index]
-        start_time =     
-        plt.plot(time_window, gamma_repeat)
-    
-    #plt.imshow(gamma_vs_flux_longRepeats[0], vmax=0.7, extent=[1,num_repeats,min(fluxes),max(fluxes)])
-    axes.set_title(f"Rate at {fluxes[target_flux_index]}")
+    for target_flux_index in range(num_fluxes//4):
+        fig, axes = plt.subplots()
+        for long_time_index, gamma_flux in enumerate(gamma_vs_flux_longRepeats):
+            gamma_repeated = gamma_flux[target_flux_index]
+            num_seq_repeats = len(gamma_repeated)
+            start_time = long_time_index*time_between_flux_repeats
+            end_time = start_time + num_sweep_repeats*time_between_seq_repeats
+            time_window = np.linspace(start_time, end_time, num_seq_repeats)
+            axes.plot(time_window, 1./gamma_repeated, '.k')
+        
+        #plt.imshow(gamma_vs_flux_longRepeats[0], vmax=0.7, extent=[1,num_repeats,min(fluxes),max(fluxes)])
+        axes.set_title(f"Biased with {fluxes[target_flux_index]} mA")
+        axes.set_ylabel("$T_1$ [$\mu s$]")
+        axes.set_xlabel("Time [hours]")
     plt.show()
 
 ##END fourier_analysis
@@ -156,7 +158,7 @@ def fourier_analysis(fluxes, gamma_vs_flux_longRepeats):
 
 def main():
     fluxes, gamma_longRepeats, gammaErr_longRepeats = get_data(False)
-    #make_plot_of_averages(fluxes, gamma_longRepeats)
+    make_plot_of_averages(fluxes, gamma_longRepeats)
     fourier_analysis(fluxes, gamma_longRepeats)
 ##END main
     
