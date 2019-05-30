@@ -14,8 +14,8 @@ import scipy
 from scipy import optimize
 
 def get_data(verbose):
-    data_dir = "C:/Users/jonathan/Downloads"
-    #data_dir = "/Users/jmonroe/Projects/fabrication/dataProcessing/qubits/qubit_JM012519.C7D10/data"
+    #data_dir = "C:/Users/jonathan/Downloads"
+    data_dir = "/Users/jmonroe/Projects/fabrication/dataProcessing/qubits/qubit_JM012519.C7D10/data"
 
     ## load data
     # -12 to -2 mA bias sweep
@@ -64,6 +64,7 @@ def make_plot_of_averages(fluxes,gamma_list):
     
         ## add to plot
         flux_axis.errorbar(fluxes, avg_t1, yerr=t1_std,fmt='o')
+        np.savetxt("data/t1_processed/T1_repAvg_"+str(index), avg_t1)
         flux_index = 8
         time_axis.errorbar(index*1.5, avg_t1[flux_index], yerr=t1_std[flux_index], fmt='o')
 
@@ -159,7 +160,7 @@ def fourier_analysis(fluxes, gamma_vs_flux_longRepeats):
 def main():
     fluxes, gamma_longRepeats, gammaErr_longRepeats = get_data(False)
     make_plot_of_averages(fluxes, gamma_longRepeats)
-    fourier_analysis(fluxes, gamma_longRepeats)
+    #fourier_analysis(fluxes, gamma_longRepeats)
 ##END main
     
     
