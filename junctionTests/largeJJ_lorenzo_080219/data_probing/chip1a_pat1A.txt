@@ -1,0 +1,24 @@
+824.1 +/- 0.118  uV	803.9 +/- 0.076  uV
+66680.0 Ohms	56090.0 Ohms
+854.1 +/- 0.128  uV	695.8 +/- 0.146  uV
+90720.0 Ohms	27910.0 Ohms
+834.6 +/- 0.042  uV	15.7 +/- 0.093  uV
+73710.0 Ohms	170.0 Ohms
+775.3 +/- 0.183  uV	17.2 +/- 0.087  uV
+45230.0 Ohms	190.0 Ohms
+18.2 +/- 0.232  uV	5.1 +/- 0.083  uV
+200.0 Ohms	60.0 Ohms
+17.5 +/- 0.08  uV	11.8 +/- 0.228  uV
+190.0 Ohms	130.0 Ohms
+Scratched	Scratched
+Nan	nan
+Scratched	Scratched
+nan	nan
+13.8 +/- 0.07  uV	4.9 +/- 0.198  uV
+150.0 Ohms	50.0 Ohms
+12.2 +/- 0.122  uV	3.4 +/- 0.091  uV
+130.0 Ohms	40.0 Ohms
+12.1 +/- 0.032  uV	3.1 +/- 0.088  uV
+130.0 Ohms	30.0 Ohms
+13.6 +/- 0.08  uV	5.1 +/- 0.326  uV
+150.0 Ohms	60.0 Ohms

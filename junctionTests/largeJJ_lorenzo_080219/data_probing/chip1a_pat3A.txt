@@ -1,0 +1,24 @@
+5.4 +/- 0.034  uV	Liftoff 
+60.0 Ohms	nan
+12.1 +/- 0.049  uV	Liftoff 
+130.0 Ohms	nan
+5.1 +/- 0.101  uV	Liftoff 
+60.0 Ohms	nan
+3.3 +/- 0.044  uV	Liftoff 
+40.0 Ohms	nan
+716.8 +/- 0.039  uV	13.2 +/- 0.035  uV
+31340.0 Ohms	140.0 Ohms
+30.6 +/- 0.033  uV	23.9 +/- 0.178  uV
+340.0 Ohms	260.0 Ohms
+788.5 +/- 0.584  uV	11.7 +/- 0.019  uV
+49750.0 Ohms	130.0 Ohms
+729.7 +/- 0.122  uV	13.1 +/- 0.018  uV
+33770.0 Ohms	140.0 Ohms
+5.1 +/- 0.014  uV	12.9 +/- 0.012  uV
+50.0 Ohms	140.0 Ohms
+3.2 +/- 0.016  uV	11.5 +/- 0.097  uV
+30.0 Ohms	120.0 Ohms
+3.3 +/- 0.063  uV	11.4 +/- 0.09  uV
+40.0 Ohms	120.0 Ohms
+5.1 +/- 0.032  uV	12.9 +/- 0.031  uV
+50.0 Ohms	140.0 Ohms
