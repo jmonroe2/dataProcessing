@@ -119,6 +119,7 @@ def main():
             
         resistance_array[i] = np.array(row)
     resistance_array = np.array(resistance_array)
+    tmp = resistance_array[ np.where( resistance_array < 5E3) ]
     
     ## plots
     #spatial_plot(resistance_array, matrix_shape, open_resistance=20E3)

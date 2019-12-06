@@ -124,7 +124,8 @@ def plot_chip_variation(plot_var=True):
     for i,label in enumerate(label_list):
         c = color_list[i%4]
         plt.text(x_pos,y_pos-i*gap,label, color=c,bbox=box_outline, transform=ax.transAxes)  
-        
+       
+    plt.show() 
 ##END plot_chip_variation
         
         
