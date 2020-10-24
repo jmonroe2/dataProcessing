@@ -49,6 +49,7 @@ def make_plot(data, num_chips, ic_fun=None):
     if ic_fun is not None:
         ic_fun(crit_curr)
     target = crit_curr ## what to plot
+    target = resistance/1000
     
     ## plots
     label_list = ['Baseline 1/2', '50 C, 15 sec', '50 C, 2 min', \
@@ -68,8 +69,9 @@ def make_plot(data, num_chips, ic_fun=None):
     plt.xticks(xs,label_list)
     ax = plt.gca()
     #ax.set_yscale('log')
-    ax.set_ylabel("$I_c$ [$\mu$ A]")
-    plt.show()  
+    #ax.set_ylabel("$i_c$ [$\mu$ a]")
+    ax.set_ylabel("Resistance [k$\Omega$]")
+    #plt.show()  
 ##END make_plot
 
 
@@ -103,6 +105,7 @@ def main():
     make_plot(paramp_list, num_blocks,scale_ic)
     make_plot(jj_list, num_blocks)    
     plt.title("Single (blue), Array (red)")
+    plt.show()
 ##END main()
     
     
